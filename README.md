@@ -1,9 +1,9 @@
-﻿![AltCmdStore](https://github.com/AltCmdStore/ShadedAltKey.png)
+﻿![](/ShadedAltKey.png)
 
 
 Alt+Cmd+Store demonstrates how to implement a command-sourced data store that supports branching. This involves a simplified set of git-like functions for working with a collection of command streams that feed into the creation of data models.
 
-# Applications
+## Applications
 
 This is a work in progress that has a long way to go. The initial plan involves three applications:
 
@@ -14,7 +14,7 @@ This is a work in progress that has a long way to go. The initial plan involves 
 * **AltCad** - a more complex sample application involving the definition of points and lines that are positioned relative to other shapes in a geometric model. 
  
 
-# Command Line
+## Command Line
 
 The AltCmd application will provide a set of commands for managing branches. The intent will be familiar to anyone who has used git.
 
@@ -33,7 +33,7 @@ The AltCmd application will provide a set of commands for managing branches. The
 * **Push** - sends recent commands to an upstream store
 
 
-# Command Storage
+## Command Storage
 
 Commands are defined by a set of data entry instructions, serialized as JSON strings using one of 3 storage classes:
 
