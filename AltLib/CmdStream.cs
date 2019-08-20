@@ -27,10 +27,10 @@ namespace AltLib
             Main = main ?? throw new ArgumentNullException(nameof(main));
             Cmds = new LinkedList<Cmd>();
 
-            // Load the target branch (plus stuff merged into it)
-            Load(Main, 0, Main.Info.CommandCount - 1);
+            // Load the target branch (plus any stuff merged into it)
+            Link(Main, 0, Main.Info.CommandCount - 1, Guid.Empty);
 
-            // Load ancestors as well
+            // Work through the ancestors as well
             for (Branch b = Main; b != null; b = b.Parent)
             {
                 if (b.Parent != null)
@@ -38,14 +38,24 @@ namespace AltLib
                     CmdData cd = b.Commands[0];
                     Debug.Assert(cd.CmdName == nameof(ICreateBranch));
                     ICreateBranch cb = (cd as ICreateBranch);
-                    Load(b.Parent, 0, cb.CommandCount - 1);
+                    Link(b.Parent, 0, cb.CommandCount - 1, Guid.Empty);
                 }
             }
 
-            Console.WriteLine("Loaded " + Cmds.Count);
+            Log.Info($"Loaded stream with {Cmds.Count} commands");
         }
 
-        void Load(Branch branch, uint minCmd, uint maxCmd)
+        /// <summary>
+        /// Links commands in a branch, recursively linking with additional
+        /// commands that have been merged in from elsewhere.
+        /// </summary>
+        /// <param name="branch">The branch to walk through</param>
+        /// <param name="minCmd">The earliest command in the branch to consider</param>
+        /// <param name="maxCmd">The latest command if the branch to consider</param>
+        /// <param name="mergeFromId">The ID of the branch containing a merge that
+        /// led to this call (<see cref="Guid.Empty"/> if the call did not originate
+        /// from a merge).</param>
+        void Link(Branch branch, uint minCmd, uint maxCmd, Guid mergeFromId)
         {
             // Ensure the branch data we need is all loaded (the commands
             // may have been loaded already if we have created more than
@@ -59,6 +69,9 @@ namespace AltLib
             {
                 CmdData cd = branch.Commands[i];
 
+                // Don't include merges in the result (they don't add anything further,
+                // and can look a bit confused when you dump it out)
+
                 if (cd.CmdName == nameof(IMerge))
                 {
                     IMerge m = (cd as IMerge);
@@ -69,10 +82,17 @@ namespace AltLib
                     else
                         fromBranch = branch.Store.FindBranch(m.FromId);
 
-                    Load(fromBranch, m.MinCmd, m.MaxCmd);
-                }
+                    // If we're already doing a merge, ignore merges from the
+                    // branch we came from (we will reach them in their original
+                    // place after we have returned to the caller).
 
-                Cmds.AddFirst(new Cmd(branch, cd));
+                    if (!fromBranch.Id.Equals(mergeFromId))
+                        Link(fromBranch, m.MinCmd, m.MaxCmd, branch.Id);
+                }
+                else
+                {
+                    Cmds.AddFirst(new Cmd(branch, cd));
+                }
             }
         }
     }

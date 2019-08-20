@@ -41,8 +41,8 @@ namespace AltCmd
 
             if (All)
             {
-                var stream = new CmdStream(cs.Current);
-                LinkedListNode<Cmd> cNode = stream.Cmds.Last;
+                // Display with most recent first
+                LinkedListNode<Cmd> cNode = cs.Stream.Cmds.Last;
 
                 for (int i = 0; cNode != null && i < Count; i++, cNode = cNode.Previous)
                 {

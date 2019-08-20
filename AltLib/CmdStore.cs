@@ -40,6 +40,11 @@ namespace AltLib
         /// </summary>
         public Branch Current { get; internal set; }
 
+        /// <summary>
+        /// The command stream corresponding to the <see cref="Current"/> branch.
+        /// </summary>
+        public CmdStream Stream { get; set; }
+
         static public CmdStore CreateStore(CmdData args)
         {
             StoreType type = args.GetEnum<StoreType>(nameof(ICreateStore.Type));
@@ -151,6 +156,7 @@ namespace AltLib
         {
             Current = branch;
             SaveCurrent();
+            Stream = new CmdStream(Current);
         }
 
         /// <summary>

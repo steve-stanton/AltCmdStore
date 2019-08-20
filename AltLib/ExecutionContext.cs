@@ -170,6 +170,17 @@ namespace AltLib
         /// </summary>
         public void InitializeModels()
         {
+            if (Store?.Stream == null)
+                return;
+
+            foreach (Cmd c in Store.Stream.Cmds)
+            {
+                if (!Apply(c.Data))
+                {
+                    Log.Info($"Model initialization failed on {c.Branch}[{c.Data.Sequence}]");
+                    return;
+                }
+            }
         }
 
         /// <summary>

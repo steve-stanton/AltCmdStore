@@ -164,3 +164,6 @@ $RECYCLE.BIN/
 .DS_Store
 *.bak
 /.vs/config/applicationhost.config
+.root
+*.json
+*.ac

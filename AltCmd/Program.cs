@@ -20,13 +20,6 @@ namespace AltCmd
             {
                 // Establish the execution context
                 var ec = GetContext(args);
-/*
-                if (ec.Store != null)
-                {
-                    TODO: Not quite there yet
-                    var cs = new CmdStream(ec.Store.Current);
-                }
-                */
 
                 // Register any command processors
                 ec.Processors.Add(new NameProcessor());
@@ -144,6 +137,9 @@ namespace AltCmd
 
             // Remember the store we opened as the last one
             cs.SaveCurrent();
+
+            // Load up the command stream as well
+            cs.Stream = new CmdStream(cs.Current);
 
             return new ExecutionContext(cs);
         }

@@ -230,61 +230,12 @@ namespace AltLib
         }
 
         /// <summary>
-        /// Saves command data relating to the this branch.
+        /// Saves command data relating to this branch.
         /// </summary>
-        /// <param name="store">The store that this branch is part of.</param>
         /// <param name="data">The data to be written.</param>
         /// <exception cref="ArgumentException">The supplied data does not
         /// have a sequence number that comes at the end of this branch.
         /// </exception>
-        /*
-        public void SaveData(CmdStore store, CmdData data)
-        {
-            // The data must come at the end of the current branch
-            if (data.Sequence != Info.CommandCount)
-                throw new ArgumentException(
-                                $"Unexpected command sequence {data.Sequence} " +
-                                $"(should be {Info.CommandCount})");
-
-            // Persist the command data
-            store.WriteData(this, data);
-
-            // Update the AC file to reflect the latest command
-            Info.CommandCount = data.Sequence + 1;
-            Info.CommandSize += data.Allocation;
-
-            // Update the appropriate merge count if we've just done a merge
-            if (data.Command == nameof(IMerge))
-            {
-                MergeSpan[] spans = data.GetArray<MergeSpan>(nameof(IMerge.Spans));
-                uint cmdCount = spans.Last().MaxCommand + 1;
-                Guid fromId = data.GetGuid(nameof(IMerge.FromId));
-
-                if (fromId.Equals(Info.ParentId))
-                {
-                    Info.RefreshCount = cmdCount;
-                    Info.RefreshDiscount = 0;
-                    Info.ParentDiscount++;
-                }
-                else
-                {
-                    // Update the child so that it knows how much the parent has merged
-                    Branch child = Children.FirstOrDefault(x => x.Id.Equals(fromId));
-                    if (child == null)
-                        throw new ApplicationException($"Cannot locate child {fromId}");
-
-                    child.Info.ParentCount = cmdCount;
-                    child.Info.ParentDiscount = 0;
-                    child.Info.RefreshDiscount++;
-
-                    child.Store.Save(child.Info);
-                }
-            }
-
-            Store.Save(Info);
-        }
-        */
-
         public void SaveData(CmdData data)
         {
             if (IsRemote)

@@ -304,31 +304,6 @@ namespace AltLib
         }
 
         /// <summary>
-        /// Attempts to locate the folder that represents the
-        /// store root.
-        /// </summary>
-        /// <param name="storeId">The ID of the store</param>
-        /// <param name="initialFolder">The folder where the
-        /// search should start.</param>
-        /// <returns>The store root folder (null if not found).</returns>
-        /// <remarks>
-        /// This looks for a file called "{storeId}.ac". If not present
-        /// in <paramref name="initialFolder"/>, it will check
-        /// ancestors.
-        /// </remarks>
-        static DirectoryInfo FindRootFolder(Guid storeId, DirectoryInfo initialFolder)
-        {
-            for (var d = initialFolder; d != null; d = d.Parent)
-            {
-                string fileName = Path.Combine(d.FullName, storeId + ".ac");
-                if (File.Exists(fileName))
-                    return d;
-            }
-
-            return null;
-        }
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="FileStore"/> class.
         /// </summary>
         /// <param name="rootInfo">Root metadata for this store.</param>
