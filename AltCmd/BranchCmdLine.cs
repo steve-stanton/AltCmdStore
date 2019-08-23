@@ -84,7 +84,7 @@ namespace AltCmd
             return result;
         }
 
-        internal override ICmdHandler GetCommandHandler(ExecutionContext context)
+        protected override ICmdHandler GetCommandHandler(ExecutionContext context)
         {
             // Don't use context.CreateCmdData here because the command
             // will get added to the new branch (not the current one).

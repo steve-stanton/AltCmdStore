@@ -18,9 +18,9 @@ namespace AltLib
         /// </summary>
         /// <param name="processor">The processor that failed (not null).</param>
         /// <param name="message">A message to explain the failure.</param>
-        /// <param name="ex">The exception that arose.</param>
+        /// <param name="ex">Any inner exception (may be null).</param>
         /// <exception cref="ArgumentNullException">Undefined processor</exception>
-        public ProcessorException(ICmdProcessor processor, string message, Exception ex)
+        public ProcessorException(ICmdProcessor processor, string message, Exception ex = null)
             : base(message, ex)
         {
             Processor = processor ?? throw new ArgumentNullException("Undefined processor");

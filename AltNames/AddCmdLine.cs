@@ -1,17 +1,16 @@
 ﻿using System;
-using System.Diagnostics;
 using AltLib;
 using CommandLine;
 
-namespace AltCmd
+namespace AltNames
 {
-    // TODO: This is now covered through the separate AltNames test program.
-    // But leave it here for now.
-    [Verb("name", HelpText = "Save a name for use in testing")]
-    class NameCmdLine : AltCmdLine, ICmdHandler
+    [Verb("add", HelpText = "Adds a name for use in testing")]
+    class AddCmdLine : AltCmdLine, ICmdHandler
     {
+        internal const string CmdName = "NameCmdLine";
+
         /// <summary>
-        /// The name to associate with this command
+        /// The name to be added
         /// </summary>
         [Value(
             1,
@@ -22,14 +21,7 @@ namespace AltCmd
 
         public override string ToString()
         {
-            return $"name {Name}";
-        }
-
-        internal static string GetCommandLine(CmdData data)
-        {
-            Debug.Assert(data.CmdName == nameof(NameCmdLine));
-            string name = data.GetValue<string>(nameof(Name));
-            return $"name {name}";
+            return $"add {Name}";
         }
 
         protected override ICmdHandler GetCommandHandler(ExecutionContext context)
@@ -38,6 +30,7 @@ namespace AltCmd
             if (String.IsNullOrEmpty(Name))
                 Name = context.ToString();
 
+            // Just do things via the Process method below
             return this;
         }
 
@@ -48,11 +41,11 @@ namespace AltCmd
             if (branch.IsRemote)
                 branch = branch.CreateLocal(context);
 
-            var cmd = new CmdData(cmdName: nameof(NameCmdLine),
+            var cmd = new CmdData(cmdName: CmdName,
                                   sequence: branch.Info.CommandCount,
                                   createdAt: DateTime.UtcNow);
 
-            cmd.Add(nameof(NameCmdLine.Name), Name);
+            cmd.Add(nameof(AddCmdLine.Name), Name);
 
             // Update relevant model(s)
             if (context.Apply(cmd))

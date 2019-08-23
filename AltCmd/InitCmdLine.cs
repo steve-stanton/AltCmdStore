@@ -45,7 +45,7 @@ namespace AltCmd
             return $"init {Name} --type {Type}";
         }
 
-        internal override ICmdHandler GetCommandHandler(ExecutionContext context)
+        protected override ICmdHandler GetCommandHandler(ExecutionContext context)
         {
             var data = new CmdData(
                         cmdName: nameof(ICreateStore),

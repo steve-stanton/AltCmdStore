@@ -22,7 +22,7 @@ namespace AltCmd
                 var ec = GetContext(args);
 
                 // Register any command processors
-                ec.Processors.Add(new NameProcessor());
+                //ec.Processors.Add(new NameProcessor());
 
                 // TODO: There should likely be a processor that handles the command
                 // model itself (which would always get processed last)...

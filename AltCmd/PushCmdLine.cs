@@ -19,7 +19,7 @@ namespace AltCmd
             return "push";
         }
 
-        internal override ICmdHandler GetCommandHandler(ExecutionContext context)
+        protected override ICmdHandler GetCommandHandler(ExecutionContext context)
         {
             CmdData data = context.CreateCmdData(nameof(IPush));
             return new PushHandler(data);

@@ -70,7 +70,7 @@ namespace AltCmd
             return true;
         }
 
-        internal override ICmdHandler GetCommandHandler(ExecutionContext context)
+        protected override ICmdHandler GetCommandHandler(ExecutionContext context)
         {
             throw new NotSupportedException();
         }

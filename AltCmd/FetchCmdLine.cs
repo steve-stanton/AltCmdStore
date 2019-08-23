@@ -19,7 +19,7 @@ namespace AltCmd
             return "fetch";
         }
 
-        internal override ICmdHandler GetCommandHandler(ExecutionContext context)
+        protected override ICmdHandler GetCommandHandler(ExecutionContext context)
         {
             CmdData data = context.CreateCmdData(nameof(IFetch));
             return new FetchHandler(data);

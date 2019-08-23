@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AltCmd", "AltCmd\AltCmd.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AltLib", "AltLib\AltLib.csproj", "{8163DF4D-1803-4ADA-B311-27F79163BCD8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AltNames", "AltNames\AltNames.csproj", "{5553EA11-ECFC-439D-A7BB-1881C85DCD87}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{8163DF4D-1803-4ADA-B311-27F79163BCD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8163DF4D-1803-4ADA-B311-27F79163BCD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8163DF4D-1803-4ADA-B311-27F79163BCD8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5553EA11-ECFC-439D-A7BB-1881C85DCD87}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5553EA11-ECFC-439D-A7BB-1881C85DCD87}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5553EA11-ECFC-439D-A7BB-1881C85DCD87}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5553EA11-ECFC-439D-A7BB-1881C85DCD87}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

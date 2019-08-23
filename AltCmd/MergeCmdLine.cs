@@ -112,7 +112,7 @@ namespace AltCmd
             return base.Execute(context);
         }
 
-        internal override ICmdHandler GetCommandHandler(ExecutionContext context)
+        protected override ICmdHandler GetCommandHandler(ExecutionContext context)
         {
             CmdData data = context.CreateCmdData(nameof(IMerge));
             data.Add(nameof(IMerge.FromId), FromId);

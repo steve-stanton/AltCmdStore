@@ -61,7 +61,7 @@ namespace AltCmd
             return $"clone {Origin} {To} --type {Type}";
         }
 
-        internal override ICmdHandler GetCommandHandler(ExecutionContext context)
+        protected override ICmdHandler GetCommandHandler(ExecutionContext context)
         {
             var data = new CmdData(
                         cmdName: nameof(ICloneStore),
