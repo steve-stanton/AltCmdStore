@@ -27,8 +27,10 @@ namespace AltLib
             Main = main ?? throw new ArgumentNullException(nameof(main));
             Cmds = new LinkedList<Cmd>();
 
-            // Load the target branch (plus any stuff merged into it)
-            Link(Main, 0, Main.Info.CommandCount - 1, Guid.Empty);
+            // Link the main branch (this may well load data from other branches
+            // that merge into the main)
+            var data = new Dictionary<Guid, CmdData[]>();
+            Link(data, Main, 0, Main.Info.CommandCount - 1);
 
             // Work through the ancestors as well
             for (Branch b = Main; b != null; b = b.Parent)
@@ -38,7 +40,17 @@ namespace AltLib
                     CmdData cd = b.Commands[0];
                     Debug.Assert(cd.CmdName == nameof(ICreateBranch));
                     ICreateBranch cb = (cd as ICreateBranch);
-                    Link(b.Parent, 0, cb.CommandCount - 1, Guid.Empty);
+                    Link(data, b.Parent, 0, cb.CommandCount - 1);
+                }
+            }
+
+            // Confirm that all data has been accounted for
+            foreach (KeyValuePair<Guid, CmdData[]> kvp in data)
+            {
+                if (!kvp.Value.All(x => x == null))
+                {
+                    Branch b = Main.Store.FindBranch(kvp.Key);
+                    Log.Error($"Not all command data accounted for in {b}");
                 }
             }
 
@@ -46,52 +58,57 @@ namespace AltLib
         }
 
         /// <summary>
-        /// Links commands in a branch, recursively linking with additional
-        /// commands that have been merged in from elsewhere.
+        /// Links command data in a branch (including data that has been merged
+        /// from other branches)
         /// </summary>
+        /// <param name="allData">The command data for all branches that contribute
+        /// to the stream, keyed by the branch ID.</param>
         /// <param name="branch">The branch to walk through</param>
         /// <param name="minCmd">The earliest command in the branch to consider</param>
         /// <param name="maxCmd">The latest command if the branch to consider</param>
-        /// <param name="mergeFromId">The ID of the branch containing a merge that
-        /// led to this call (<see cref="Guid.Empty"/> if the call did not originate
-        /// from a merge).</param>
-        void Link(Branch branch, uint minCmd, uint maxCmd, Guid mergeFromId)
+        void Link(Dictionary<Guid, CmdData[]> allData, Branch branch, uint minCmd, uint maxCmd)
         {
-            // Ensure the branch data we need is all loaded (the commands
-            // may have been loaded already if we have created more than
-            // one command stream)
-            branch.Load(maxCmd + 1);
+            if (!allData.ContainsKey(branch.Id))
+            {
+                // Ensure the branch has been loaded up to the high water mark
+                branch.Load(maxCmd + 1);
 
-            Guid parentId = branch.Info.ParentId;
+                // The branch may already hold a larger cache of command data. Take a
+                // copy of the references we need to build this stream.
+                CmdData[] data = branch.Commands.Take((int)maxCmd + 1).ToArray();
+                allData.Add(branch.Id, data);
+            }
 
-            // Work back from the end
+            CmdData[] branchData = allData[branch.Id];
+
+            if (maxCmd >= branchData.Length)
+                throw new IndexOutOfRangeException($"{branch}[{maxCmd}] out of range (max is {branchData.Length - 1})");
+
             for (int i = (int)maxCmd; i >= (int)minCmd; i--)
             {
-                CmdData cd = branch.Commands[i];
+                CmdData cd = branchData[i];
 
-                // Don't include merges in the result (they don't add anything further,
-                // and can look a bit confused when you dump it out)
-
-                if (cd.CmdName == nameof(IMerge))
-                {
-                    IMerge m = (cd as IMerge);
-                    Branch fromBranch = null;
-
-                    if (m.FromId.Equals(parentId))
-                        fromBranch = branch.Parent;
-                    else
-                        fromBranch = branch.Store.FindBranch(m.FromId);
-
-                    // If we're already doing a merge, ignore merges from the
-                    // branch we came from (we will reach them in their original
-                    // place after we have returned to the caller).
-
-                    if (!fromBranch.Id.Equals(mergeFromId))
-                        Link(fromBranch, m.MinCmd, m.MaxCmd, branch.Id);
-                }
-                else
+                if (cd != null)
                 {
                     Cmds.AddFirst(new Cmd(branch, cd));
+
+                    if (cd.CmdName == nameof(IMerge))
+                    {
+                        IMerge m = (cd as IMerge);
+                        Branch fromBranch = branch.Store.FindBranch(m.FromId);
+                        Link(allData, fromBranch, m.MinCmd, m.MaxCmd);
+                    }
+
+                    // And null it out. As we walk back down the chain of commands,
+                    // we may end up merging from a branch that merges in turn from
+                    // the calling branch. We want to make sure we don't include it
+                    // a second time in the stream.
+
+                    // This also makes it possible to confirm that all command data
+                    // has been accounted for when we have finished building the
+                    // stream.
+
+                    branchData[i] = null;
                 }
             }
         }
