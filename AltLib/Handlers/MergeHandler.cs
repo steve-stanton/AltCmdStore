@@ -66,6 +66,11 @@ namespace AltLib
             uint minCmd = targetIsParent ? source.Info.ParentCount : target.Info.RefreshCount;
             uint maxCmd = (uint)source.Info.CommandCount - 1;
 
+            // TODO: Round about here we need to actually include the new stuff
+            // as part of the current stream. Replaying the commands may then
+            // lead to some sort of conflict (things are not guaranteed to work),
+            // so there needs to be some way to preview the results.
+
             // Write the command data
             Input.Add(nameof(IMerge.MinCmd), minCmd);
             Input.Add(nameof(IMerge.MaxCmd), maxCmd);

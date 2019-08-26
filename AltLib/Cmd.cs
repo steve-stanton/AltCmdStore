@@ -24,6 +24,9 @@ namespace AltLib
         /// <summary>
         /// The data for the command (not null).
         /// </summary>
+        /// <remarks>
+        /// This corresponds to Branch.Commands[Data.Sequence]
+        /// </remarks>
         public CmdData Data { get; }
 
         /// <summary>

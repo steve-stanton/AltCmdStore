@@ -86,6 +86,7 @@
     <Compile Include="Input\IMerge.cs" />
     <Compile Include="Input\IMergeHelper.cs" />
     <Compile Include="Input\IPush.cs" />
+    <Compile Include="IProcessorProperty.cs" />
     <Compile Include="IRemoteStore.cs" />
     <Compile Include="LocalRef.cs" />
     <Compile Include="MemoryStore.cs" />

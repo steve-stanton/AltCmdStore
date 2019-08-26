@@ -16,7 +16,7 @@ namespace AltNames
         /// </summary>
         /// <remarks>This demonstrates how the processor might append additional
         /// command parameters derived from the processing.</remarks>
-        const string CutCount = null;
+        const IProcessorProperty CutCount = null;
 
         /// <summary>
         /// The names that are already known (may contain duplicates).

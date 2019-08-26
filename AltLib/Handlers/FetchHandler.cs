@@ -45,74 +45,62 @@ namespace AltLib
 
             // Collate how much we already have in all remote branches.
             // We may have previously pushed some local branches to the remote
-            // store, but any attempt to change them made elsewhere should be
-            // disallowed.
+            // store, but nothing is supposed to mutate those remote copies.
 
             IdCount[] have = cs.Branches.Values
-                                .Where(x => x.IsRemote)
-                                .Select(x => new IdCount(x.Id, x.Info.CommandCount))
-                                .ToArray();
+                               .Where(x => x.IsRemote)
+                               .Select(x => new IdCount(x.Id, x.Info.CommandCount))
+                               .ToArray();
 
             // Open a channel to the upstream store
             IRemoteStore rs = context.GetRemoteStore(upLoc);
 
-            // We do care about new branches in the remote
+            // Determine what we are missing (including any new branches in the remote)
             IdRange[] toFetch = rs.GetMissingRanges(have, true);
 
             // How many commands do we need to fetch
             uint total = (uint)toFetch.Sum(x => x.Size);
             Log.Info($"To fetch {total} commands from {toFetch.Length} branches");
 
-            /*
-            // Keep track of any new branches
-            var newBranches = new List<AltCmdFile>();
+            // Retrieve the command data from the remote, keeping new branches
+            // apart from appends to existing branches.
 
-            // As well as the latest state of the AC metadata on the remote
-            var updBranches = new List<AltCmdFile>();
+            var newBranchData = new Dictionary<AltCmdFile, CmdData[]>();
+            var moreBranchData = new Dictionary<AltCmdFile, CmdData[]>();
 
             foreach (IdRange idr in toFetch)
             {
-                // Fetch the AC file, but don't copy over command data just yet
-                // (it's important to create new branches in their creation order)
+                // Fetch the remote AC file
                 AltCmdFile ac = rs.GetBranchInfo(idr.Id);
                 if (ac == null)
                     throw new ApplicationException("Could not locate remote branch " + idr.Id);
 
-                Branch b = cs.FindBranch(idr.Id);
+                // And the relevant data
+                Log.Info($"Fetch [{idr.Min},{idr.Max}] for {ac.BranchName} ({ac.BranchId})");
+                CmdData[] branchData = rs.GetData(idr).ToArray();
 
-                if (b == null)
-                {
-                    newBranches.Add(ac);
-                }
+                if (cs.FindBranch(ac.BranchId) == null)
+                    newBranchData.Add(ac, branchData);
                 else
-                {
-                    updBranches.Add(ac);
-
-                    Log.Info($"Fetch [{idr.Min},{idr.Max}] into {b}");
-                    CmdData[] data = rs.GetData(idr).ToArray();
-
-                    // TODO: This will fail sometimes because it expects any child to
-                    // be there (and that could be a new branch).
-                    foreach (CmdData cd in data)
-                        b.SaveData(cd);
-                }
+                    moreBranchData.Add(ac, branchData);
             }
 
-            // Process any new branches (in the order they were created)
-            foreach (AltCmdFile ac in newBranches.OrderBy(x => x.CreatedAt))
-            {
-                Log.Info("New branch " + ac.BranchId);
+            // All done with the remote store
 
-                // Transfer the command data
-                var idr = new IdRange(ac.BranchId, 0, ac.CommandCount - 1);
-                CmdData[] data = rs.GetData(idr).ToArray();
-            }
+            // Copy any brand new branches (ensuring they get created in the
+            // right order so that parent/child relationships can be formed
+            // as we go).
 
-            // Process any branches that have been updated
-            foreach (AltCmdFile ac in updBranches)
-            {
-            }
-            */
+            foreach (KeyValuePair<AltCmdFile, CmdData[]> kvp in newBranchData.OrderBy(x => x.Key.CreatedAt))
+                cs.CopyIn(kvp.Key, kvp.Value);
+
+            // Append command data for branches we previously had (the order
+            // shouldn't matter)
+
+            foreach (KeyValuePair<AltCmdFile, CmdData[]> kvp in moreBranchData)
+                cs.CopyIn(kvp.Key, kvp.Value);
+
+            Log.Info("Fetch completed");
         }
     }
 }

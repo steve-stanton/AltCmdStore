@@ -44,13 +44,13 @@ namespace AltLib
 
             // Collate the number of commands we have in local branches
             IdCount[] have = cs.Branches.Values
-                                .Where(x => !x.IsRemote)
-                                .Select(x => new IdCount(x.Id, x.Info.CommandCount))
-                                .ToArray();
+                               .Where(x => !x.IsRemote)
+                               .Select(x => new IdCount(x.Id, x.Info.CommandCount))
+                               .ToArray();
 
             IRemoteStore rs = context.GetRemoteStore(upLoc);
 
-            // We don't care about new branches in the remote, but we do care
+            // We don't care about new branches in the origin, but we do care
             // about local branches that have been created since the last push
             IdRange[] toPush = rs.GetMissingRanges(have, false).ToArray();
 

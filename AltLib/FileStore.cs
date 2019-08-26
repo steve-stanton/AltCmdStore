@@ -82,6 +82,10 @@ namespace AltLib
                     IdRange range = new IdRange(ac.BranchId, 0, ac.CommandCount - 1);
                     CmdData[] data = rs.GetData(range).ToArray();
 
+                    // TODO: what follows is very similar to the CopyIn method.
+                    // Consider using that instead (means an empty FileStore needs
+                    // to be created up front)
+
                     // Define the output location for the AC file (relative to the
                     // location that should have already been defined for the parent)
 
@@ -147,6 +151,78 @@ namespace AltLib
         }
 
         /// <summary>
+        /// Copies in data from a remote branch.
+        /// </summary>
+        /// <param name="ac">The branch metadata received from a remote store
+        /// (this will be used to replace any metadata already held locally).</param>
+        /// <param name="data">The command data to append to the local branch.</param>
+        /// <exception cref="ApplicationException">
+        /// Attempt to import remote data into a local branch</exception>
+        public override void CopyIn(AltCmdFile ac, CmdData[] data)
+        {
+            // The incoming data can only come from a remote store
+            Debug.Assert(!ac.StoreId.Equals(this.Id));
+
+            // Define the local location for the AC file (relative to the
+            // location that should have already been defined for the parent).
+            // There could be no parent if we're copying in command data from
+            // the root branch.
+
+            string dataFolder;
+            Branch parent;
+
+            if (ac.ParentId.Equals(Guid.Empty))
+            {
+                parent = null;
+                dataFolder = Root.DirectoryName;
+            }
+            else
+            {
+                parent = FindBranch(ac.ParentId);
+                if (parent == null)
+                    throw new ApplicationException("Cannot find parent branch " + ac.ParentId);
+
+                dataFolder = Path.Combine(parent.Info.DirectoryName, ac.BranchName);
+            }
+
+            // Save the supplied AC in its new location (if the branch already
+            // exists locally, this will overwrite the AC)
+            ac.FileName = Path.Combine(dataFolder, ac.BranchId + ".ac");
+            Save(ac);
+
+            Branch branch = FindBranch(ac.BranchId);
+
+            if (branch == null)
+            {
+                Log.Trace($"Copying {data.Length} commands to {ac.DirectoryName}");
+
+                Debug.Assert(data[0].Sequence == 0);
+                Debug.Assert(data[0].CmdName == nameof(ICreateBranch));
+                Debug.Assert(parent != null);
+
+                // Create the new branch
+                branch = new Branch(this, ac);
+                branch.Parent = parent;
+                parent.Children.Add(branch);
+                Branches.Add(ac.BranchId, branch);
+            }
+            else
+            {
+                Log.Trace($"Appending {data.Length} commands to {ac.DirectoryName}");
+
+                if (!branch.IsRemote)
+                    throw new ApplicationException("Attempt to import remote data into a local branch");
+
+                // Replace the cached metadata
+                branch.Info = ac;
+            }
+
+            // Copy over the command data
+            foreach (CmdData cd in data)
+                WriteData(dataFolder, cd);
+        }
+
+        /// <summary>
         /// Obtains some sort of channel to the store that acts
         /// as the origin for the clone.
         /// </summary>
@@ -165,23 +241,6 @@ namespace AltLib
             Log.Info($"Cloning from {result.Name}");
             return result;
         }
-
-        //public override CmdStore CreateSibling(string name, AltCmdFile ac)
-        //{
-        //    // Define the location of the root metadata for the sibling store
-        //    Branch root = FindRoot();
-        //    var rootDir = new DirectoryInfo(root.Info.DirectoryName);
-        //    string siblingDir = Path.Combine(rootDir.Parent.FullName, name);
-        //    ac.FileName = Path.Combine(siblingDir, ac.BranchId + ".ac");
-
-        //    var result = new FileStore(ac.BranchId,
-        //                               new AltCmdFile[] { ac },
-        //                               ac.BranchId);
-
-        //    // Write the AC file to the sibling folder
-        //    result.Save(ac);
-        //    return result;
-        //}
 
         /// <summary>
         /// Checks whether a folder is on a local fixed drive.

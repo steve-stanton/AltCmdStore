@@ -74,7 +74,8 @@ namespace AltLib
                 branch.Load(maxCmd + 1);
 
                 // The branch may already hold a larger cache of command data. Take a
-                // copy of the references we need to build this stream.
+                // copy of the references we need to build this stream (since we're
+                // walking backwards, we should encounter the max on the first call)
                 CmdData[] data = branch.Commands.Take((int)maxCmd + 1).ToArray();
                 allData.Add(branch.Id, data);
             }
@@ -90,14 +91,17 @@ namespace AltLib
 
                 if (cd != null)
                 {
-                    Cmds.AddFirst(new Cmd(branch, cd));
-
                     if (cd.CmdName == nameof(IMerge))
                     {
                         IMerge m = (cd as IMerge);
                         Branch fromBranch = branch.Store.FindBranch(m.FromId);
+
+                        // The merge command itself will precede the things
+                        // that the merge brought in (reads better that way)
                         Link(allData, fromBranch, m.MinCmd, m.MaxCmd);
                     }
+
+                    Cmds.AddFirst(new Cmd(branch, cd));
 
                     // And null it out. As we walk back down the chain of commands,
                     // we may end up merging from a branch that merges in turn from

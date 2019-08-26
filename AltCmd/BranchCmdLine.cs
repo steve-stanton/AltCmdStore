@@ -134,6 +134,7 @@ namespace AltCmd
             {
                 string prefix = b.Info.BranchId.Equals(curBranchId) ? "*" : " ";
                 string suffix = String.Empty;
+                string isRemote = b.IsRemote ? "^" : " ";
 
                 if (b.Parent != null)
                 {
@@ -154,7 +155,7 @@ namespace AltCmd
                         suffix += ")";
                 }
 
-                Console.WriteLine($"{prefix} {b}{suffix}");
+                Console.WriteLine($"{prefix} {isRemote}{b}{suffix}");
             }
         }
 

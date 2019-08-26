@@ -27,7 +27,7 @@ namespace AltLib
     /// a command store, as well as sub-folders that represent
     /// further branches within that store.
     /// </remarks>
-    public class AltCmdFile
+    public class AltCmdFile : IEquatable<AltCmdFile>
     {
         /// <summary>
         /// The unique ID for the store that contains this branch.
@@ -244,6 +244,16 @@ namespace AltLib
                 return acFiles[0];
             else
                 return null;
+        }
+
+        public bool Equals(AltCmdFile that)
+        {
+            return this.BranchId.Equals(that?.BranchId);
+        }
+
+        public override int GetHashCode()
+        {
+            return BranchId.GetHashCode();
         }
     }
 }

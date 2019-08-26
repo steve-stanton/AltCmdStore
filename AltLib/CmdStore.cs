@@ -336,7 +336,7 @@ namespace AltLib
                     // The current store contains the same branch, so see if the
                     // current store has more
                     if (idc.Count > oldCount)
-                        yield return new IdRange(idc.Id, oldCount, idc.Count);
+                        yield return new IdRange(idc.Id, oldCount - 1, idc.Count - 1);
                 }
                 else
                 {
@@ -351,7 +351,18 @@ namespace AltLib
             // Treat them as missing.
 
             foreach (KeyValuePair<Guid, uint> kvp in oldCounts)
-                yield return new IdRange(kvp.Key, 0, kvp.Value);
+                yield return new IdRange(kvp.Key, 0, kvp.Value - 1);
+        }
+
+        /// <summary>
+        /// Copies in data from a new remote branch.
+        /// </summary>
+        /// <param name="ac">The branch metadata received from a remote store.</param>
+        /// <param name="data">The command data for the branch</param>
+        public virtual void CopyIn(AltCmdFile ac, CmdData[] data)
+        {
+            // Currently implemented only by FileStore
+            throw new NotImplementedException();
         }
     }
 }

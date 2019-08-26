@@ -21,7 +21,7 @@ namespace AltLib
         /// <summary>
         /// Metadata relating to the branch.
         /// </summary>
-        public AltCmdFile Info { get; }
+        public AltCmdFile Info { get; internal set; }
 
         /// <summary>
         /// The parent branch (if any).
@@ -233,9 +233,21 @@ namespace AltLib
         /// Saves command data relating to this branch.
         /// </summary>
         /// <param name="data">The data to be written.</param>
+        /// <exception cref="ApplicationException">Attempt to save new data
+        /// to a branch imported from a remote store.</exception>
         /// <exception cref="ArgumentException">The supplied data does not
         /// have a sequence number that comes at the end of this branch.
         /// </exception>
+        /// <remarks>
+        /// This method can be used only to append data to a branch was created
+        /// as part of the local store. As well as saving the command data, it
+        /// will mutate the AC metadata for the branch.
+        /// <para/>
+        /// TODO: At the present time, a merge from a child branch will also
+        /// mutate the AC metadata for the child. This is bad because the
+        /// child could be a remote, but it would be wise to disallow any
+        /// attempt to mutate anything relating to a remote branch.
+        /// </remarks>
         public void SaveData(CmdData data)
         {
             if (IsRemote)
@@ -297,6 +309,7 @@ namespace AltLib
                 }
             }
 
+            // Save the mutated branch metadata
             Store.Save(Info);
         }
 
