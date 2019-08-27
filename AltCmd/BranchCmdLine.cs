@@ -134,7 +134,14 @@ namespace AltCmd
             {
                 string prefix = b.Info.BranchId.Equals(curBranchId) ? "*" : " ";
                 string suffix = String.Empty;
-                string isRemote = b.IsRemote ? "^" : " ";
+                string isRemote = " ";
+
+                if (b.IsRemote)
+                {
+                    // If every ancestor is remote, it's an upstream branch. Otherwise
+                    // its a downstream branch that has been pushed back to its origin
+                    isRemote = b.CanBranch ? "^" : ".";
+                }
 
                 if (b.Parent != null)
                 {
