@@ -93,6 +93,12 @@ namespace AltLib
                 {
                     if (cd.CmdName == nameof(IMerge))
                     {
+                        // TODO: Is this really preserving the entry order
+                        // across branches? I think it needs to return as soon as
+                        // it hits a merge from the calling branch (that's behind
+                        // the idea of nulling out stuff as we go). But how would
+                        // it know where to continue the merge??
+
                         IMerge m = (cd as IMerge);
                         Branch fromBranch = branch.Store.FindBranch(m.FromId);
 
