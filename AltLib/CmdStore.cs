@@ -311,47 +311,60 @@ namespace AltLib
         /// <summary>
         /// Obtains command ranges that are missing in another store.
         /// </summary>
-        /// <param name="existing">The number of commands that are currently present
-        /// in each branch of another store (in any order).</param>
-        /// <param name="wantNew">Should new branches in this store (i.e. branches
-        /// that are unknown in the other store) be included in the results.</param>
+        /// <param name="callerId">The ID of the command store making the request</param>
+        /// <param name="callerHas">The number of commands that are currently present
+        /// in each branch of the calling store (in any order).</param>
+        /// <param name="isFetch">Specify <c>true</c> if the request is to satisfy a fetch
+        /// request (in that case, new branches in this store should be included in the
+        /// results). Specify <c>false</c> if the request is for a push.
+        /// </param>
         /// <returns>The commands in this store that are not in the other store,
         /// and vice versa.</returns>
-        IdRange[] IRemoteStore.GetMissingRanges(IdCount[] existing, bool wantNew)
+        IdRange[] IRemoteStore.GetMissingRanges(Guid callerId, IdCount[] callerHas, bool isFetch)
         {
-            return GetMissingRanges(existing, wantNew).ToArray();
+            return GetMissingRanges(callerId, callerHas, isFetch).ToArray();
         }
 
-        IEnumerable<IdRange> GetMissingRanges(IdCount[] existing, bool wantNew)
+        IEnumerable<IdRange> GetMissingRanges(Guid callerId, IdCount[] callerHas, bool isFetch)
         {
-            Dictionary<Guid, uint> oldCounts = existing.ToDictionary(x => x.Id, x => x.Count);
+            Dictionary<Guid, uint> callerCounts = callerHas.ToDictionary(x => x.Id, x => x.Count);
 
             // Cycle through every branch in the current store
-            foreach (IdCount idc in GetBranchCounts())
+            foreach (Branch b in Branches.Values)
             {
-                if (oldCounts.TryGetValue(idc.Id, out uint oldCount))
+                if (callerCounts.TryGetValue(b.Id, out uint callerCount))
                 {
-                    oldCounts.Remove(idc.Id);
+                    callerCounts.Remove(b.Id);
 
-                    // The current store contains the same branch, so see if the
-                    // current store has more
-                    if (idc.Count > oldCount)
-                        yield return new IdRange(idc.Id, oldCount - 1, idc.Count - 1);
+                    // The current store contains the same branch. If fetching, return the
+                    // extra stuff present in this store. If pushing, return the extra stuff
+                    // in the store that's pushing.
+
+                    uint localCount = b.Info.CommandCount;
+
+                    if (isFetch && localCount > callerCount)
+                        yield return new IdRange(b.Id, callerCount - 1, localCount - 1);
+                    else if (!isFetch && localCount < callerCount)
+                        yield return new IdRange(b.Id, localCount - 1, callerCount - 1);
                 }
                 else
                 {
-                    // The current store has a new branch (not present in the other store)
-                    if (wantNew)
-                        yield return new IdRange(idc.Id, 0, idc.Count - 1);
+                    // The current store has a new branch (not present as a remote branch
+                    // in the other store). Return it if we're handling a fetch, but only
+                    // if it doesn't originate with the requesting store.
+
+                    if (isFetch && !b.Info.StoreId.Equals(callerId))
+                        yield return new IdRange(b.Id, 0, b.Info.CommandCount - 1);
                 }
             }
 
-            // If we did not consider everything that was supplied, it means
-            // we have branches in the downstream that aren't in this store.
-            // Treat them as missing.
-
-            foreach (KeyValuePair<Guid, uint> kvp in oldCounts)
-                yield return new IdRange(kvp.Key, 0, kvp.Value - 1);
+            // If we're handling a push request, return info for the branches
+            // that are present in the calling store, but not in the local store.
+            if (!isFetch)
+            {
+                foreach (KeyValuePair<Guid, uint> kvp in callerCounts)
+                    yield return new IdRange(kvp.Key, 0, kvp.Value - 1);
+            }
         }
 
         /// <summary>
@@ -363,6 +376,16 @@ namespace AltLib
         {
             // Currently implemented only by FileStore
             throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Accepts data from another command store.
+        /// </summary>
+        /// <param name="ac">The metadata for the branch the commands are part of.</param>
+        /// <param name="data">The command data to be appended to the remote branch.</param>
+        void IRemoteStore.Push(AltCmdFile ac, CmdData[] data)
+        {
+            CopyIn(ac, data);
         }
     }
 }

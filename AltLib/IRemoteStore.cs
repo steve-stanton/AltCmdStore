@@ -37,14 +37,22 @@ namespace AltLib
         /// <summary>
         /// Obtains command ranges that are missing in another store.
         /// </summary>
-        /// <param name="existing">The number of commands that are currently present
-        /// in each branch of another store (in any order).</param>
-        /// <param name="wantNew">Should new branches in this store (i.e. branches
-        /// that are unknown in the other store) be included in the results.
-        /// Specify <c>true</c> when fetching from the remote, or <c>false</c> when
-        /// pushing to the remote.</param>
+        /// <param name="callerId">The ID of the command store making the request</param>
+        /// <param name="callerHas">The number of commands that are currently present
+        /// in each branch of the calling store (in any order).</param>
+        /// <param name="isFetch">Specify <c>true</c> if the request is to satisfy a fetch
+        /// request (in that case, new branches in this store should be included in the
+        /// results). Specify <c>false</c> if the request is for a push.
+        /// </param>
         /// <returns>The commands in this store that are not in the other store,
         /// or vice versa.</returns>
-        IdRange[] GetMissingRanges(IdCount[] existing, bool wantNew);
+        IdRange[] GetMissingRanges(Guid callerId, IdCount[] callerHas, bool isFetch);
+
+        /// <summary>
+        /// Accepts data from another command store.
+        /// </summary>
+        /// <param name="ac">The metadata for the branch the commands are part of.</param>
+        /// <param name="data">The command data to be appended to the remote branch.</param>
+        void Push(AltCmdFile ac, CmdData[] data);
     }
 }

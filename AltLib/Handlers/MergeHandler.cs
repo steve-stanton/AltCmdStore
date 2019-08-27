@@ -45,8 +45,8 @@ namespace AltLib
             // Merges can only be done between branches that are part
             // of the local store (fetches from remote stores should
             // involve a totally different set of branches)
-            if (target.Info.StoreId != source.Info.StoreId)
-                throw new NotSupportedException("Attempt to merge with a remote store");
+            //if (target.Info.StoreId != source.Info.StoreId)
+            //    throw new NotSupportedException("Attempt to merge with a remote store");
 
             // Determine the first command that needs to be merged from
             // the source branch. The source branch doesn't know anything

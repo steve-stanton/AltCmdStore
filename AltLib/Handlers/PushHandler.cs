@@ -52,7 +52,7 @@ namespace AltLib
 
             // We don't care about new branches in the origin, but we do care
             // about local branches that have been created since the last push
-            IdRange[] toPush = rs.GetMissingRanges(have, false).ToArray();
+            IdRange[] toPush = rs.GetMissingRanges(cs.Id, have, false).ToArray();
 
             // How many commands do we need to push
             uint total = (uint)toPush.Sum(x => x.Size);
@@ -66,7 +66,12 @@ namespace AltLib
                     throw new ApplicationException("Cannot locate branch " + idr.Id);
 
                 Log.Info($"Push [{idr.Min},{idr.Max}] from {b}");
+
+                CmdData[] data = b.TakeRange(idr.Min, idr.Max).ToArray();
+                rs.Push(b.Info, data);
             }
+
+            Log.Info("Push completed");
         }
     }
 }

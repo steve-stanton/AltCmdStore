@@ -56,7 +56,7 @@ namespace AltLib
             IRemoteStore rs = context.GetRemoteStore(upLoc);
 
             // Determine what we are missing (including any new branches in the remote)
-            IdRange[] toFetch = rs.GetMissingRanges(have, true);
+            IdRange[] toFetch = rs.GetMissingRanges(cs.Id, have, true);
 
             // How many commands do we need to fetch
             uint total = (uint)toFetch.Sum(x => x.Size);

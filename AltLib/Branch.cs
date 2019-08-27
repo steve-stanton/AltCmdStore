@@ -331,6 +331,24 @@ namespace AltLib
         }
 
         /// <summary>
+        /// Obtains a subset of the commands in this branch (reading them in
+        /// if they have not been loaded already).
+        /// </summary>
+        /// <param name="minSeq">The sequence number of the first command in the range.</param>
+        /// <param name="maxSeq">The sequence number of the last command in the range.</param>
+        /// <returns>The commands in the specified range (ordered by
+        /// their data entry sequence).
+        /// </returns>
+        internal IEnumerable<CmdData> TakeRange(uint minSeq, uint maxSeq)
+        {
+            // Ensure the complete range has been loaded
+            Load(maxSeq + 1);
+
+            for (uint i = minSeq; i <= maxSeq; i++)
+                yield return Commands[(int)i];
+        }
+
+        /// <summary>
         /// Obtains a string that represents this object.
         /// </summary>
         /// <returns>The string returned by <see cref="GetBranchPath"/></returns>
