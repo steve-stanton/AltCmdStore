@@ -63,7 +63,8 @@ namespace AltLib
         /// <param name="storeId">The ID of a command store.</param>
         /// <param name="upstreamId">The ID of the upstream store.</param>
         /// <param name="upstreamLocation">The location of the upstream store (if any) that should be used
-        /// as the default when pushing and fetching.</param>
+        /// as the default when pushing and fetching. For stores on the local file system,
+        /// this needs to be a full path (relative specs may confuse things)</param>
         /// <param name="pushTimes">The locations of all versions of the upstream that
         /// the clone has pushed to (along with the time of the last push).</param>
         [JsonConstructor]

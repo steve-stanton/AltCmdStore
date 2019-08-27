@@ -110,8 +110,16 @@ namespace AltLib
                         FileStore.WriteData(dataFolder, cd);
                 }
 
+                // If the origin is a folder on the local file system, ensure it's
+                // saved as an absolute path (relative specs may confuse directory
+                // navigation, depending on what the current directory is at the time)
+
+                string origin = cs.Origin;
+                if (Directory.Exists(origin))
+                    origin = Path.GetFullPath(origin);
+
                 // Save the root metadata
-                var root = new RootFile(storeId, rs.Id, cs.Origin);
+                var root = new RootFile(storeId, rs.Id, origin);
                 root.DirectoryName = folderName;
                 FileStore.SaveRoot(root);
 
