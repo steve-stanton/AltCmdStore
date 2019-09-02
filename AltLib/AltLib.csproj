@@ -58,6 +58,7 @@
     <Compile Include="AltCmdLine.cs" />
     <Compile Include="AltRef.cs" />
     <Compile Include="Branch.cs" />
+    <Compile Include="MergeInfo.cs" />
     <Compile Include="IdCount.cs" />
     <Compile Include="IdRange.cs" />
     <Compile Include="Cmd.cs" />

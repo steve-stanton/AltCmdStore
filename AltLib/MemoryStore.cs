@@ -44,14 +44,14 @@ namespace AltLib
             Guid storeId = args.GetGuid(nameof(ICreateStore.StoreId));
 
             var ac = new AltCmdFile(storeId: storeId,
+                                    parentId: Guid.Empty,
                                     branchId: storeId,
                                     createdAt: args.CreatedAt,
                                     commandCount: 0,
-                                    parentId: Guid.Empty,
+                                    commandDiscount: 0,
                                     refreshCount: 0,
                                     refreshDiscount: 0,
-                                    parentCount: 0,
-                                    parentDiscount: 0);
+                                    lastMerge: null);
 
             string name = args.GetValue<string>(nameof(ICreateStore.Name));
             ac.FileName = $@"m:\{name}\{storeId}.ac";

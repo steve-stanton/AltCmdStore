@@ -36,5 +36,15 @@ namespace AltLib
             else
                 return fullString.StartsWith(prefix, StringComparison.InvariantCultureIgnoreCase);
         }
+
+        /// <summary>
+        /// Checks whether a string is defined (satisfying !String.IsNullOrEmpty).
+        /// </summary>
+        /// <param name="s">The string to check</param>
+        /// <returns><c>true</c> if String.IsNullOrEmpty returns false.</returns>
+        public static bool IsDefined(this string s)
+        {
+            return !String.IsNullOrEmpty(s);
+        }
     }
 }

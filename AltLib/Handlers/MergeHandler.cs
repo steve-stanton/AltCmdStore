@@ -63,7 +63,27 @@ namespace AltLib
             bool targetIsParent = target.Id.Equals(source.Info.ParentId);
 
             // Define the range of commands to be merged from the source
-            uint minCmd = targetIsParent ? source.Info.ParentCount : target.Info.RefreshCount;
+
+            uint minCmd = 0;
+
+            if (targetIsParent)
+            {
+                // Merging into the parent, so start from the command immediately
+                // after the last command that was previously merged (or 0 if this
+                // is the first time the parent has merged from the child).
+
+                if (target.Info.LastMerge.TryGetValue(sourceId, out MergeInfo mi))
+                    minCmd = mi.ChildCount;
+            }
+            else
+            {
+                // Merging from the parent into the child, so start from the command
+                // immediately after the last command that was previously merged (it
+                // could potentially be 0)
+
+                minCmd = target.Info.RefreshCount;
+            }
+
             uint maxCmd = (uint)source.Info.CommandCount - 1;
 
             // TODO: Round about here we need to actually include the new stuff

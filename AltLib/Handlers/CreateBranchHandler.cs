@@ -58,14 +58,14 @@ namespace AltLib
 
             var ac = new AltCmdFile(
                         storeId: cs.Id,
+                        parentId: parent.Id,
                         branchId: Guid.NewGuid(),
                         createdAt: Input.CreatedAt,
                         commandCount: 0,
-                        parentId: parent.Id,
+                        commandDiscount: 1,
                         refreshCount: numCmd,
                         refreshDiscount: 0,
-                        parentCount: 0, 
-                        parentDiscount: 1); // treat the branch command like a merge
+                        lastMerge: null);
 
             // Save the AC file in the store
             string parentPath = Path.GetDirectoryName(parent.Info.FileName);

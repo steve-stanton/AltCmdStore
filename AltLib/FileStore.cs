@@ -130,14 +130,14 @@ namespace AltLib
             {
                 // Create the AC file that represents the store root branch
                 var ac = new AltCmdFile(storeId: storeId,
+                                        parentId: Guid.Empty,
                                         branchId: storeId,
                                         createdAt: args.CreatedAt,
                                         commandCount: 0,
-                                        parentId: Guid.Empty,
+                                        commandDiscount: 0,
                                         refreshCount: 0,
                                         refreshDiscount: 0,
-                                        parentCount: 0,
-                                        parentDiscount: 0);
+                                        lastMerge: null);
 
                 // Create a new root
                 var root = new RootFile(storeId, Guid.Empty);

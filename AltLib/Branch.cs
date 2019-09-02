@@ -159,7 +159,7 @@ namespace AltLib
         /// </summary>
         /// <remarks>
         /// This is the number of commands that need to be merged from the
-        /// parent branch, excluding recent merges that the parent has made
+        /// parent branch, excluding merges that the parent has made
         /// from this branch.
         /// </remarks>
         public uint BehindCount
@@ -168,10 +168,17 @@ namespace AltLib
             {
                 if (Parent == null)
                     return 0;
-                else
-                    return Parent.Info.CommandCount -
-                           Info.RefreshDiscount -
-                           Info.RefreshCount;
+
+                // Obtain the number of merges the parent has made from the child
+                uint parentDiscount = 0;
+                if (Parent.Info.LastMerge.TryGetValue(this.Id, out MergeInfo mi))
+                    parentDiscount = mi.ParentDiscount;
+
+                uint parentCount = Parent.Info.CommandCount - parentDiscount;
+                uint childHas = Info.RefreshCount - Info.RefreshDiscount;
+                Debug.Assert(parentCount >= childHas);
+
+                return parentCount - childHas;
             }
         }
 
@@ -183,7 +190,34 @@ namespace AltLib
         /// the parent, excluding recent merges from the parent.
         /// </remarks>
         public uint AheadCount
-            => Info.CommandCount - Info.ParentDiscount - Info.ParentCount;
+        {
+            get
+            {
+                if (Parent == null)
+                    return 0;
+
+                // How many commands does this branch (the child) now have. We only
+                // want to consider commands that contribute something to the parent,
+                // so this excludes any merges that the child has taken from the parent.
+
+                uint childCount = Info.CommandCount - Info.CommandDiscount;
+
+                // If the parent has already merged, deduct the values that were defined
+                // when the parent last merged.
+
+                uint parentHas = 0;
+                if (Parent.Info.LastMerge.TryGetValue(this.Id, out MergeInfo m))
+                {
+                    parentHas = m.ChildCount - m.ChildDiscount;
+                    Debug.Assert(parentHas <= childCount);
+                }
+
+                // The parent has never merged, so return what we now have (excluding
+                // the create branch command itself + any merges from the parent)
+
+                return childCount - parentHas;
+            }
+        }
 
         /// <summary>
         /// The path for the folder that contains the AC file,
@@ -268,42 +302,43 @@ namespace AltLib
             // Update the appropriate merge count if we've just done a merge
             if (data.CmdName == nameof(IMerge))
             {
-                Guid fromId = (data as IMerge).FromId;
+                IMerge m = (data as IMerge);
+                Guid fromId = m.FromId;
+                uint numCmd = m.MaxCmd + 1;
 
                 if (fromId.Equals(Info.ParentId))
                 {
+                    // Increment the number of merges from the parent
+                    this.Info.CommandDiscount++;
+
                     // Just done a merge from the parent (this is the child,
                     // now matches the parent)
                     this.Info.RefreshCount = Parent.Info.CommandCount;
-                    this.Info.RefreshDiscount = 0;
 
-                    // The parent doesn't need to consider the merge
-                    // from this child, so increment the number of commands
-                    // the parent can ignore
-                    this.Info.ParentDiscount++;
+                    // Record the number of times that the parent has already merged
+                    // from the child (if at all)
+                    uint parentDiscount = 0;
+                    if (Parent.Info.LastMerge.TryGetValue(this.Id, out MergeInfo mi))
+                        parentDiscount = mi.ParentDiscount;
+
+                    this.Info.RefreshDiscount = parentDiscount;
                 }
                 else
                 {
-                    // TODO: Updating the child AC isn't ideal, is there another way?
-                    // One potential issue is that when a store merges from a child
-                    // that has been pushed from a remote clone, we end up mutating
-                    // the AC of the child. Although we don't append any extra commands
-                    // to the child, it could potentially confuse push/fetch logic.
-
-                    // Just done a merge from a child, so update the child so
-                    // that it knows how much the parent has merged
+                    // Merge is from a child.
                     Branch child = Children.FirstOrDefault(x => x.Id.Equals(fromId));
                     if (child == null)
                         throw new ApplicationException($"Cannot locate child {fromId}");
 
-                    // Update the child to signify that the parent now has everything
-                    child.Info.ParentCount = child.Info.CommandCount;
-                    child.Info.ParentDiscount = 0;
+                    // The child doesn't need to consider the merge that the parent has done,
+                    // so increment the number of parent commands the child can ignore
 
-                    // The child doesn't need to consider the merge 
-                    // that the parent has done, so increment the number of
-                    // parent commands the child can ignore
-                    child.Info.RefreshDiscount++;
+                    if (Info.LastMerge.TryGetValue(fromId, out MergeInfo mi))
+                        Info.LastMerge[fromId] = new MergeInfo(child.Info.RefreshCount,
+                                                               child.Info.RefreshDiscount,
+                                                               mi.ParentDiscount + 1);
+                    else
+                        Info.LastMerge.Add(fromId, new MergeInfo(numCmd, child.Info.CommandDiscount, 1));
 
                     child.Store.Save(child.Info);
                 }
