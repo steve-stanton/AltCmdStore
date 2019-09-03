@@ -334,8 +334,8 @@ namespace AltLib
                     // so increment the number of parent commands the child can ignore
 
                     if (Info.LastMerge.TryGetValue(fromId, out MergeInfo mi))
-                        Info.LastMerge[fromId] = new MergeInfo(child.Info.RefreshCount,
-                                                               child.Info.RefreshDiscount,
+                        Info.LastMerge[fromId] = new MergeInfo(numCmd,
+                                                               child.Info.CommandDiscount,
                                                                mi.ParentDiscount + 1);
                     else
                         Info.LastMerge.Add(fromId, new MergeInfo(numCmd, child.Info.CommandDiscount, 1));
