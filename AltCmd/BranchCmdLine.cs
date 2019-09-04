@@ -47,12 +47,32 @@ namespace AltCmd
             Default = false)]
         public bool List { get; private set; }
 
+        [Option(
+            'a',
+            "all",
+            HelpText = "List both local and remote branches",
+            Default = false)]
+        public bool All { get; private set; }
+
+        [Option(
+            'r',
+            "remotes",
+            HelpText = "List only remote branches",
+            Default = false)]
+        public bool Remotes { get; private set; }
+
         public override bool Execute(ExecutionContext context)
         {
-            if (String.IsNullOrEmpty(Name))
+            if (List)
             {
                 ListBranches(context);
                 return true;
+            }
+
+            if (!Name.IsDefined())
+            {
+                Console.WriteLine("You need to specify a name for the new branch");
+                return false;
             }
 
             // If a starting point has been specified, confirm that
@@ -129,9 +149,30 @@ namespace AltCmd
             // Apply optional filter
             Guid curBranchId = store.Current.Info.BranchId;
             IEnumerable<Branch> toList = ApplyFilter(store.Branches.Values);
+            uint numLocal = 0;
+            uint numRemote = 0;
+            uint totLocal = 0;
+            uint totRemote = 0;
 
             foreach (Branch b in toList.OrderBy(x => x.GetBranchPath()))
             {
+                if (b.IsRemote)
+                {
+                    numRemote++;
+                    totRemote += b.Info.CommandCount;
+                }
+                else
+                {
+                    numLocal++;
+                    totLocal += b.Info.CommandCount;
+                }
+
+                if (!All)
+                {
+                    if (Remotes != b.IsRemote)
+                        continue;
+                }
+
                 string prefix = b.Info.BranchId.Equals(curBranchId) ? "*" : " ";
                 string suffix = String.Empty;
                 string isRemote = " ";
@@ -156,6 +197,14 @@ namespace AltCmd
                             suffix = " (";
 
                         suffix += $"ahead of parent by {b.AheadCount}";
+
+                        // If we've pushed, show where we got to (can't easily show a
+                        // number that's a subset of the AheadCount, since the branch
+                        // metadata doesn't hold the discount value as well)
+                        // TODO: Need to show how many within the AheadCount have
+                        // actually been pushed
+                        if (b.Info.LastPush != 0)
+                            suffix += $" - pushed to [{b.Info.LastPush}]";
                     }
 
                     if (suffix.Length > 0)
@@ -164,6 +213,21 @@ namespace AltCmd
 
                 Console.WriteLine($"{prefix} {isRemote}{b}{suffix}");
             }
+
+            Console.WriteLine();
+            string localMsg = $"{totLocal} commands in {numLocal} local branches";
+            string remotesMsg = $"{totRemote} commands in {numRemote} remote branches";
+
+            if (!All)
+            {
+                if (Remotes)
+                    localMsg += " (not listed)";
+                else
+                    remotesMsg += " (not listed)";
+            }
+
+            Console.WriteLine(localMsg);
+            Console.WriteLine(remotesMsg);
         }
 
         IEnumerable<Branch> ApplyFilter(IEnumerable<Branch> branches)

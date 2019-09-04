@@ -339,8 +339,6 @@ namespace AltLib
                                                                mi.ParentDiscount + 1);
                     else
                         Info.LastMerge.Add(fromId, new MergeInfo(numCmd, child.Info.CommandDiscount, 1));
-
-                    child.Store.Save(child.Info);
                 }
             }
 

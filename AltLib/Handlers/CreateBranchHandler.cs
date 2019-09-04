@@ -61,11 +61,8 @@ namespace AltLib
                         parentId: parent.Id,
                         branchId: Guid.NewGuid(),
                         createdAt: Input.CreatedAt,
-                        commandCount: 0,
                         commandDiscount: 1,
-                        refreshCount: numCmd,
-                        refreshDiscount: 0,
-                        lastMerge: null);
+                        refreshCount: numCmd);
 
             // Save the AC file in the store
             string parentPath = Path.GetDirectoryName(parent.Info.FileName);

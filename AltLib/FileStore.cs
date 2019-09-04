@@ -132,12 +132,7 @@ namespace AltLib
                 var ac = new AltCmdFile(storeId: storeId,
                                         parentId: Guid.Empty,
                                         branchId: storeId,
-                                        createdAt: args.CreatedAt,
-                                        commandCount: 0,
-                                        commandDiscount: 0,
-                                        refreshCount: 0,
-                                        refreshDiscount: 0,
-                                        lastMerge: null);
+                                        createdAt: args.CreatedAt);
 
                 // Create a new root
                 var root = new RootFile(storeId, Guid.Empty);
@@ -164,9 +159,10 @@ namespace AltLib
         /// <param name="ac">The branch metadata received from a remote store
         /// (this will be used to replace any metadata already held locally).</param>
         /// <param name="data">The command data to append to the local branch.</param>
+        /// <param name="altName">An alternative name to assign to the branch.</param>
         /// <exception cref="ApplicationException">
         /// Attempt to import remote data into a local branch</exception>
-        public override void CopyIn(AltCmdFile ac, CmdData[] data)
+        public override void CopyIn(AltCmdFile ac, CmdData[] data, string altName = null)
         {
             // The incoming data can only come from a remote store
             Debug.Assert(!ac.StoreId.Equals(this.Id));
@@ -190,7 +186,7 @@ namespace AltLib
                 if (parent == null)
                     throw new ApplicationException("Cannot find parent branch " + ac.ParentId);
 
-                dataFolder = Path.Combine(parent.Info.DirectoryName, ac.BranchName);
+                dataFolder = Path.Combine(parent.Info.DirectoryName, altName ?? ac.BranchName);
             }
 
             // Save the supplied AC in its new location (if the branch already

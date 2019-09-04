@@ -101,6 +101,13 @@ namespace AltLib
                 cs.CopyIn(kvp.Key, kvp.Value);
 
             Log.Info("Fetch completed");
+
+            // Reload the current command stream (from scratch, kind of brute force,
+            // not sure whether appending the new commands would really be sufficient)
+            // TODO: Is this really necessary? Perhaps only if the current branch has
+            // been fetched (the stuff we're fetching should only come from remotes,
+            // but the current branch could be one of those remotes)
+            //cs.Stream = new CmdStream(cs.Current);
         }
     }
 }

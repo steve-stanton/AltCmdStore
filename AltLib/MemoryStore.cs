@@ -46,12 +46,7 @@ namespace AltLib
             var ac = new AltCmdFile(storeId: storeId,
                                     parentId: Guid.Empty,
                                     branchId: storeId,
-                                    createdAt: args.CreatedAt,
-                                    commandCount: 0,
-                                    commandDiscount: 0,
-                                    refreshCount: 0,
-                                    refreshDiscount: 0,
-                                    lastMerge: null);
+                                    createdAt: args.CreatedAt);
 
             string name = args.GetValue<string>(nameof(ICreateStore.Name));
             ac.FileName = $@"m:\{name}\{storeId}.ac";

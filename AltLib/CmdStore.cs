@@ -372,7 +372,8 @@ namespace AltLib
         /// </summary>
         /// <param name="ac">The branch metadata received from a remote store.</param>
         /// <param name="data">The command data for the branch</param>
-        public virtual void CopyIn(AltCmdFile ac, CmdData[] data)
+        /// <param name="altName">An alternative name to assign to the branch.</param>
+        public virtual void CopyIn(AltCmdFile ac, CmdData[] data, string altName = null)
         {
             // Currently implemented only by FileStore
             throw new NotImplementedException();
@@ -381,11 +382,18 @@ namespace AltLib
         /// <summary>
         /// Accepts data from another command store.
         /// </summary>
+        /// <param name="source">A name that identifies the command store that is
+        /// the source of the data.</param>
         /// <param name="ac">The metadata for the branch the commands are part of.</param>
         /// <param name="data">The command data to be appended to the remote branch.</param>
-        void IRemoteStore.Push(AltCmdFile ac, CmdData[] data)
+        void IRemoteStore.Push(string source, AltCmdFile ac, CmdData[] data)
         {
-            CopyIn(ac, data);
+            // Clone the supplied metadata (if the call actually comes from
+            // the current application, we don't want to mutate the metadata)
+            AltCmdFile acCopy = ac.CreateCopy();
+
+            string altName = acCopy.BranchName == "+" ? source : null;
+            CopyIn(acCopy, data, altName);
         }
     }
 }

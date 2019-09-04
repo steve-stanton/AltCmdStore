@@ -51,8 +51,10 @@ namespace AltLib
         /// <summary>
         /// Accepts data from another command store.
         /// </summary>
+        /// <param name="source">A name that identifies the command store that is
+        /// the source of the data.</param>
         /// <param name="ac">The metadata for the branch the commands are part of.</param>
         /// <param name="data">The command data to be appended to the remote branch.</param>
-        void Push(AltCmdFile ac, CmdData[] data);
+        void Push(string source, AltCmdFile ac, CmdData[] data);
     }
 }

@@ -68,7 +68,11 @@ namespace AltLib
                 Log.Info($"Push [{idr.Min},{idr.Max}] from {b}");
 
                 CmdData[] data = b.TakeRange(idr.Min, idr.Max).ToArray();
-                rs.Push(b.Info, data);
+                rs.Push(cs.Name, b.Info, data);
+
+                // Remember how much we were ahead at the time of the push
+                b.Info.LastPush = idr.Max + 1;
+                b.Store.Save(b.Info);
             }
 
             Log.Info("Push completed");

@@ -114,6 +114,17 @@ namespace AltLib
         public Dictionary<Guid, MergeInfo> LastMerge { get; }
 
         /// <summary>
+        /// The number of commands in this branch that have been pushed upstream
+        /// (applies only to clones).
+        /// </summary>
+        /// <remarks>In a situation where the upstream exists in more than one
+        /// location (i.e. there is more than one copy), this does not tell
+        /// us which location actually received the last push. Some sort of
+        /// overall controller is expected to keep the copies in sync.
+        /// </remarks>
+        public uint LastPush { get; internal set; }
+
+        /// <summary>
         /// The AC file name (including the full path).
         /// </summary>
         [JsonIgnore]
@@ -141,6 +152,8 @@ namespace AltLib
         /// that have been merged from the parent.</param>
         /// <param name="refreshDiscount">The number of merges that the parent has made
         /// from this child branch (at the time this child last merged from the parent)</param>
+        /// <param name="lastPush">The number of commands in this branch that have
+        /// been pushed upstream (applies only to clones)</param>
         /// <param name="lastMerge">Information relating to merges from child branches,
         /// keyed by the branch ID.</param>
         [JsonConstructor]
@@ -148,11 +161,12 @@ namespace AltLib
                             Guid parentId,
                             Guid branchId,
                             DateTime createdAt,
-                            uint commandCount,
-                            uint commandDiscount,
-                            uint refreshCount,
-                            uint refreshDiscount,
-                            Dictionary<Guid,MergeInfo> lastMerge)
+                            uint commandCount = 0,
+                            uint commandDiscount = 0,
+                            uint refreshCount = 0,
+                            uint refreshDiscount = 0,
+                            uint lastPush = 0,
+                            Dictionary<Guid,MergeInfo> lastMerge = null)
         {
             StoreId = storeId;
             ParentId = parentId;
@@ -162,6 +176,7 @@ namespace AltLib
             CommandDiscount = commandDiscount;
             RefreshCount = refreshCount;
             RefreshDiscount = refreshDiscount;
+            LastPush = lastPush;
             LastMerge = lastMerge ?? new Dictionary<Guid, MergeInfo>();
         }
 
@@ -220,6 +235,11 @@ namespace AltLib
         public override int GetHashCode()
         {
             return BranchId.GetHashCode();
+        }
+
+        public AltCmdFile CreateCopy()
+        {
+            return (AltCmdFile)MemberwiseClone();
         }
     }
 }
