@@ -215,8 +215,8 @@ namespace AltCmd
             }
 
             Console.WriteLine();
-            string localMsg = $"{totLocal} commands in {numLocal} local branches";
-            string remotesMsg = $"{totRemote} commands in {numRemote} remote branches";
+            string localMsg = $"{totLocal} command`s in {numLocal} local branch`es".Strips();
+            string remotesMsg = $"{totRemote} command`s in {numRemote} remote branch`es".Strips();
 
             if (!All)
             {
@@ -227,7 +227,9 @@ namespace AltCmd
             }
 
             Console.WriteLine(localMsg);
-            Console.WriteLine(remotesMsg);
+
+            if (totRemote > 0)
+                Console.WriteLine(remotesMsg);
         }
 
         IEnumerable<Branch> ApplyFilter(IEnumerable<Branch> branches)
