@@ -57,7 +57,7 @@ namespace AltLib
             // How many commands do we need to push
             uint total = (uint)toPush.Sum(x => x.Size);
 
-            Log.Info($"To push {total} commands in {toPush.Length} branches");
+            Log.Info($"To push {total} command`s in {toPush.Length} branch`es".TrimExtras());
 
             foreach (IdRange idr in toPush)
             {

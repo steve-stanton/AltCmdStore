@@ -9,7 +9,7 @@ namespace AltLib
     /// <summary>
     /// A branch within the command model.
     /// </summary>
-    public class Branch
+    public class Branch : IEquatable<Branch>
     {
         static Logger Log = LogManager.GetCurrentClassLogger();
 
@@ -255,6 +255,11 @@ namespace AltLib
             }
 
             names.Reverse();
+
+            // Extend completed branches with a .
+            if (Info.IsCompleted)
+                names.Add(".");
+
             string result = String.Join("/", names);
 
             if (excludeRoot)
@@ -295,6 +300,16 @@ namespace AltLib
 
             // Persist the command data
             Store.WriteData(this, data);
+
+            // If the command is being appended to the current branch,
+            // ensure it's also included in the stream (the command may
+            // not be in the current branch because we may be creating
+            // a new branch)
+
+            // TODO: The Stream might not be defined when creating a new store
+
+            if (this.Equals(Store.Current))
+                Store.Stream?.Cmds.AddLast(new Cmd(this, data));
 
             // Update the AC file to reflect the latest command
             Info.CommandCount = data.Sequence + 1;
@@ -476,6 +491,11 @@ namespace AltLib
             Log.Info($"Created (and switched to) {result}");
 
             return result;
+        }
+
+        public bool Equals(Branch that)
+        {
+            return this.Id.Equals(that?.Id);
         }
     }
 }

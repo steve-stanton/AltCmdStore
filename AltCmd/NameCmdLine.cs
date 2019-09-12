@@ -48,10 +48,8 @@ namespace AltCmd
             if (branch.IsRemote)
                 branch = branch.CreateLocal(context);
 
-            var cmd = new CmdData(cmdName: nameof(NameCmdLine),
-                                  sequence: branch.Info.CommandCount,
-                                  createdAt: DateTime.UtcNow);
 
+            CmdData cmd = context.CreateCmdData(nameof(NameCmdLine));
             cmd.Add(nameof(NameCmdLine.Name), Name);
 
             // Update relevant model(s)

@@ -50,7 +50,7 @@ namespace AltCmd
                     string branchPath = c.Branch.GetBranchPath(false);
                     CmdData cd = c.Data;
                     string summary = GetCmdSummary(cs, cd, c.Branch);
-                    Console.WriteLine($"{branchPath}:[{cd.Sequence}] = {summary}");
+                    Console.WriteLine($"{branchPath}[{cd.Sequence}] = {summary}");
                 }
             }
             else

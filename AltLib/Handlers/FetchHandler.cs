@@ -60,7 +60,7 @@ namespace AltLib
 
             // How many commands do we need to fetch
             uint total = (uint)toFetch.Sum(x => x.Size);
-            Log.Info($"To fetch {total} commands from {toFetch.Length} branches");
+            Log.Info($"To fetch {total} command`s from {toFetch.Length} branch`es".TrimExtras());
 
             // Retrieve the command data from the remote, keeping new branches
             // apart from appends to existing branches.

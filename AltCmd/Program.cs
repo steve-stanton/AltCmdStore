@@ -170,6 +170,10 @@ namespace AltCmd
                 {
                     argList[0] = "branch";
                 }
+                else if (args[0].StartsWith("m"))
+                {
+                    argList[0] = "merge";
+                }
 
                 args = argList.ToArray();
             }
@@ -191,7 +195,8 @@ namespace AltCmd
                 FetchCmdLine,
                 PushCmdLine,
                 RecallCmdLine,
-                NameCmdLine>(args)
+                NameCmdLine,
+                CompleteCmdLine>(args)
                 .WithParsed<AltCmdLine>(x => x.Execute(ec));
         }
 

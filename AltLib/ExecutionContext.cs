@@ -84,6 +84,15 @@ namespace AltLib
         {
             AltCmdFile ac = Store.Current.Info;
 
+            // Never return command data for a completed branch
+            if (ac.IsCompleted)
+                throw new InvalidOperationException("Branch has already been completed");
+
+            // And never for a remote
+            // May be doing a push (which you can do from any branch)
+            //if (Store.Current.IsRemote)
+            //    throw new InvalidOperationException("Unexpected attempt to append to a remote branch");
+
             return new CmdData(
                         cmdName: commandName,
                         sequence: ac.CommandCount,

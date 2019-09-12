@@ -58,7 +58,7 @@ namespace AltLib
         /// then looking for a previous word that can be converted into an integer. If that
         /// number is "1", the letter(s) following the marker will be stripped out.
         /// </remarks>
-        public static string Strips(this string s, char pluralPrefix = '`')
+        public static string TrimExtras(this string s, char pluralPrefix = '`')
         {
             if (String.IsNullOrEmpty(s))
                 return s;

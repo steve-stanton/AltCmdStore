@@ -26,7 +26,7 @@ namespace AltCmd
         [Value(
             0,
             Required = false,
-            HelpText = "The name for the new branch",
+            HelpText = "The name of the branch",
             MetaName = "branch-name")]
         public string Name { get; internal set; }
 
@@ -44,6 +44,7 @@ namespace AltCmd
             'l',
             "list",
             HelpText = "Lists branches",
+            SetName = "list",
             Default = false)]
         public bool List { get; private set; }
 
@@ -51,6 +52,7 @@ namespace AltCmd
             'a',
             "all",
             HelpText = "List both local and remote branches",
+            SetName = "list",
             Default = false)]
         public bool All { get; private set; }
 
@@ -58,8 +60,27 @@ namespace AltCmd
             'r',
             "remotes",
             HelpText = "List only remote branches",
+            SetName = "list",
             Default = false)]
         public bool Remotes { get; private set; }
+
+        /*
+        [Option(
+            'c',
+            "complete",
+            HelpText = "Complete a branch",
+            SetName = "complete",
+            Default = false)]
+        public bool Complete { get; private set; }
+
+        [Option(
+            'f',
+            "force",
+            HelpText = "Force completion of branch, even if there are unmerged commands",
+            SetName = "complete",
+            Default = false)]
+        public bool Force { get; private set; }
+        */
 
         public override bool Execute(ExecutionContext context)
         {
@@ -71,9 +92,39 @@ namespace AltCmd
 
             if (!Name.IsDefined())
             {
-                Console.WriteLine("You need to specify a name for the new branch");
+                Console.WriteLine("You need to specify a branch name");
                 return false;
             }
+
+            /*
+            if (Complete)
+            {
+                // Disallow if the branch is ahead of the current branch
+                Branch b = context.Store.Current.GetChild(Name);
+                if (b == null)
+                {
+                    Console.WriteLine($"Cannot find branch called {Name}");
+                    return false;
+                }
+
+                if (b.IsRemote)
+                {
+                    Console.WriteLine("You cannot complete a remote branch");
+                    return false;
+                }
+
+                // Disallow if there are commands that haven't been merged into the parent
+                if (b.AheadCount > 0 && !Force)
+                {
+                    Console.WriteLine($"Cannot complete ({b.AheadCount} command`s not merged). Use --force if you really want to complete".TrimExtras());
+                    return false;
+                }
+
+                AltCmdFile ac = b.Info;
+                ac.IsCompleted = true;
+                context.Store.Save(ac);
+            }
+            */
 
             // If a starting point has been specified, confirm that
             // it is valid. If nothing specified, define it to point
@@ -181,7 +232,7 @@ namespace AltCmd
                 {
                     // If every ancestor is remote, it's an upstream branch. Otherwise
                     // its a downstream branch that has been pushed back to its origin
-                    isRemote = b.CanBranch ? "^" : ".";
+                    isRemote = b.CanBranch ? "^" : "_";
                 }
 
                 if (b.Parent != null)
@@ -215,8 +266,8 @@ namespace AltCmd
             }
 
             Console.WriteLine();
-            string localMsg = $"{totLocal} command`s in {numLocal} local branch`es".Strips();
-            string remotesMsg = $"{totRemote} command`s in {numRemote} remote branch`es".Strips();
+            string localMsg = $"{totLocal} command`s in {numLocal} local branch`es".TrimExtras();
+            string remotesMsg = $"{totRemote} command`s in {numRemote} remote branch`es".TrimExtras();
 
             if (!All)
             {

@@ -125,6 +125,12 @@ namespace AltLib
         public uint LastPush { get; internal set; }
 
         /// <summary>
+        /// Has the branch been tagged as completed?
+        /// </summary>
+        /// TODO: Make it a BranchState property (Active, Completed, Deleted)
+        public bool IsCompleted { get; internal set; }
+
+        /// <summary>
         /// The AC file name (including the full path).
         /// </summary>
         [JsonIgnore]
@@ -156,6 +162,7 @@ namespace AltLib
         /// been pushed upstream (applies only to clones)</param>
         /// <param name="lastMerge">Information relating to merges from child branches,
         /// keyed by the branch ID.</param>
+        /// <param name="isCompleted">Has the branch been tagged as completed?</param>
         [JsonConstructor]
         internal AltCmdFile(Guid storeId,
                             Guid parentId,
@@ -166,7 +173,8 @@ namespace AltLib
                             uint refreshCount = 0,
                             uint refreshDiscount = 0,
                             uint lastPush = 0,
-                            Dictionary<Guid,MergeInfo> lastMerge = null)
+                            Dictionary<Guid,MergeInfo> lastMerge = null,
+                            bool isCompleted = false)
         {
             StoreId = storeId;
             ParentId = parentId;
@@ -178,6 +186,7 @@ namespace AltLib
             RefreshDiscount = refreshDiscount;
             LastPush = lastPush;
             LastMerge = lastMerge ?? new Dictionary<Guid, MergeInfo>();
+            IsCompleted = isCompleted;
         }
 
         /// <summary>

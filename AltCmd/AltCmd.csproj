@@ -65,6 +65,7 @@
     <Compile Include="BranchCmdLine.cs" />
     <Compile Include="CheckoutCmdLine.cs" />
     <Compile Include="CloneCmdLine.cs" />
+    <Compile Include="CompleteCmdLine.cs" />
     <Compile Include="FetchCmdLine.cs" />
     <Compile Include="InitCmdLine.cs" />
     <Compile Include="MergeCmdLine.cs" />

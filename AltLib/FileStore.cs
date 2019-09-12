@@ -412,7 +412,7 @@ namespace AltLib
         /// </summary>
         /// <param name="dataFolder">The path for the folder to write to</param>
         /// <param name="data">The data to be written</param>
-        static void WriteData(string dataFolder, CmdData data)
+        public static void WriteData(string dataFolder, CmdData data)
         {
             string dataPath = Path.Combine(dataFolder, $"{data.Sequence}.json");
             string json = JsonConvert.SerializeObject(data, Formatting.Indented);
