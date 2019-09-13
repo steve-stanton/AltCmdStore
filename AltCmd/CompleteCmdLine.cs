@@ -5,22 +5,42 @@ using CommandLine;
 namespace AltCmd
 {
     /// <summary>
-    /// Marks a branch as completed
+    /// Marks the current branch as completed
     /// </summary>
-    [Verb("complete", HelpText = "Marks a branch as completed")]
+    [Verb("complete", HelpText = "Marks the current branch as completed")]
     class CompleteCmdLine : AltCmdLine
     {
+        [Option(
+            'f',
+            "force",
+            HelpText = "Force completion even if the branch contains un-merged commands",
+            Default = false)]
+        public bool Force { get; private set; }
+
+        /*
+        [Option(
+            'c',
+            "cascade",
+            HelpText = "Complete all descendants as well",
+            Default = false)]
+        public bool Cascade { get; private set; }
+        */
+
         /// <summary>
         /// Obtains a string that contains all command line parameters.
         /// </summary>
         /// <returns>The command line text</returns>
         public override string ToString()
         {
-            return "complete";
+            if (Force)
+                return "complete --force";
+            else
+                return "complete";
         }
+
         public override bool Execute(ExecutionContext context)
         {
-            // Disallow if the current branch is ahead of the parent
+            // Disallow if we're working with a remote
             Branch b = context.Store.Current;
             if (b.IsRemote)
             {
@@ -29,11 +49,13 @@ namespace AltCmd
             }
 
             // Disallow if there are commands that haven't been merged into the parent
-            if (b.AheadCount > 0)
+            if (b.AheadCount > 0 && !Force)
             {
                 Console.WriteLine($"Cannot complete ({b.AheadCount} command`s not merged)".TrimExtras());
                 return false;
             }
+
+            // TODO: Check all descendants too
 
             return base.Execute(context);
         }

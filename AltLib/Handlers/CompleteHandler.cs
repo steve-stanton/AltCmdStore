@@ -34,9 +34,12 @@ namespace AltLib
 
         public void Process(ExecutionContext context)
         {
-            AltCmdFile ac = context.Store.Current.Info;
-            ac.IsCompleted = true;
-            context.Store.Save(ac);
+            // TODO: Completion may also need to cascade to descendants (does
+            // command data need to be written there too?)
+
+            Branch b = context.Store.Current;
+            b.Info.IsCompleted = true;
+            b.SaveData(Input);
         }
     }
 }

@@ -61,6 +61,7 @@ namespace AltLib
                         parentId: parent.Id,
                         branchId: Guid.NewGuid(),
                         createdAt: Input.CreatedAt,
+                        updatedAt: Input.CreatedAt,
                         commandDiscount: 1,
                         refreshCount: numCmd);
 

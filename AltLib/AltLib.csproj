@@ -58,7 +58,6 @@
     <Compile Include="AltCmdLine.cs" />
     <Compile Include="AltRef.cs" />
     <Compile Include="Branch.cs" />
-    <Compile Include="BranchState.cs" />
     <Compile Include="Handlers\CompleteHandler.cs" />
     <Compile Include="Input\IComplete.cs" />
     <Compile Include="MergeInfo.cs" />

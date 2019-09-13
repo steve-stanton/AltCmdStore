@@ -64,24 +64,6 @@ namespace AltCmd
             Default = false)]
         public bool Remotes { get; private set; }
 
-        /*
-        [Option(
-            'c',
-            "complete",
-            HelpText = "Complete a branch",
-            SetName = "complete",
-            Default = false)]
-        public bool Complete { get; private set; }
-
-        [Option(
-            'f',
-            "force",
-            HelpText = "Force completion of branch, even if there are unmerged commands",
-            SetName = "complete",
-            Default = false)]
-        public bool Force { get; private set; }
-        */
-
         public override bool Execute(ExecutionContext context)
         {
             if (List)
@@ -95,36 +77,6 @@ namespace AltCmd
                 Console.WriteLine("You need to specify a branch name");
                 return false;
             }
-
-            /*
-            if (Complete)
-            {
-                // Disallow if the branch is ahead of the current branch
-                Branch b = context.Store.Current.GetChild(Name);
-                if (b == null)
-                {
-                    Console.WriteLine($"Cannot find branch called {Name}");
-                    return false;
-                }
-
-                if (b.IsRemote)
-                {
-                    Console.WriteLine("You cannot complete a remote branch");
-                    return false;
-                }
-
-                // Disallow if there are commands that haven't been merged into the parent
-                if (b.AheadCount > 0 && !Force)
-                {
-                    Console.WriteLine($"Cannot complete ({b.AheadCount} command`s not merged). Use --force if you really want to complete".TrimExtras());
-                    return false;
-                }
-
-                AltCmdFile ac = b.Info;
-                ac.IsCompleted = true;
-                context.Store.Save(ac);
-            }
-            */
 
             // If a starting point has been specified, confirm that
             // it is valid. If nothing specified, define it to point
@@ -221,6 +173,9 @@ namespace AltCmd
                 if (!All)
                 {
                     if (Remotes != b.IsRemote)
+                        continue;
+
+                    if (b.Info.IsCompleted)
                         continue;
                 }
 
