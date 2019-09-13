@@ -45,8 +45,12 @@ namespace AltLib
         /// <returns>The property value (or <see cref="DateTime.MinValue"/> if not found)</returns>
         public static DateTime GetDateTime(this Dictionary<string, object> props, string propertyName)
         {
+            // Don't try to parse (drops milliseconds). It should
+            // always be a DateTime already.
+
             if (props.TryGetValue(propertyName, out object o) && o != null)
-                return DateTime.Parse(o.ToString());
+                return (DateTime)o;
+                //return DateTime.Parse(o.ToString());
             else
                 return DateTime.MinValue;
         }

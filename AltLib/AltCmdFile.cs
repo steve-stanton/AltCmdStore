@@ -63,6 +63,11 @@ namespace AltLib
         public DateTime CreatedAt { get; }
 
         /// <summary>
+        /// The time (UTC) when a command was last appended to the branch.
+        /// </summary>
+        public DateTime UpdatedAt { get; internal set; }
+
+        /// <summary>
         /// The number of commands that have been appended to the branch.
         /// </summary>
         public uint CommandCount { get; internal set; }
@@ -127,7 +132,6 @@ namespace AltLib
         /// <summary>
         /// Has the branch been tagged as completed?
         /// </summary>
-        /// TODO: Make it a BranchState property (Active, Completed, Deleted)
         public bool IsCompleted { get; internal set; }
 
         /// <summary>
@@ -151,6 +155,7 @@ namespace AltLib
         /// there is no parent).</param>
         /// <param name="branchId">The unique ID for the branch.</param>
         /// <param name="createdAt">The time (UTC) when the branch was originally created.</param>
+        /// <param name="updatedAt">The time (UTC) when a command was last appended to the branch.</param>
         /// <param name="commandCount">The number of commands that have been appended to the branch.</param>
         /// <param name="commandDiscount">The number of merges from the parent that are
         /// included in <paramref name="commandCount"/></param>
@@ -168,6 +173,7 @@ namespace AltLib
                             Guid parentId,
                             Guid branchId,
                             DateTime createdAt,
+                            DateTime? updatedAt = null,
                             uint commandCount = 0,
                             uint commandDiscount = 0,
                             uint refreshCount = 0,
@@ -180,6 +186,7 @@ namespace AltLib
             ParentId = parentId;
             BranchId = branchId;
             CreatedAt = createdAt;
+            UpdatedAt = updatedAt.HasValue ? updatedAt.Value : createdAt;
             CommandCount = commandCount;
             CommandDiscount = commandDiscount;
             RefreshCount = refreshCount;

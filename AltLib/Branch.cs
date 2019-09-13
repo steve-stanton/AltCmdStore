@@ -289,8 +289,13 @@ namespace AltLib
         /// </remarks>
         public void SaveData(CmdData data)
         {
+            // Make some last-minute checks (these should have been done already)
+
             if (IsRemote)
                 throw new ApplicationException("Attempt to mutate remote branch");
+
+            if (Info.IsCompleted)
+                throw new ApplicationException("Attempt to mutate a completed branch");
 
             // The data must come at the end of the current branch
             if (data.Sequence != Info.CommandCount)
@@ -313,6 +318,7 @@ namespace AltLib
 
             // Update the AC file to reflect the latest command
             Info.CommandCount = data.Sequence + 1;
+            Info.UpdatedAt = data.CreatedAt;
 
             // Update the appropriate merge count if we've just done a merge
             if (data.CmdName == nameof(IMerge))
