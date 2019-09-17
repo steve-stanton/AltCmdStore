@@ -54,7 +54,9 @@ namespace AltLib
                 }
             }
 
-            Log.Info($"Loaded stream with {Cmds.Count} commands");
+            // Apply any updates
+
+            //Log.Info($"Loaded stream with {Cmds.Count} commands");
         }
 
         /// <summary>

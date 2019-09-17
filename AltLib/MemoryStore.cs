@@ -58,7 +58,7 @@ namespace AltLib
         /// </summary>
         /// <param name="rootAc">Metadata for the root branch</param>
         MemoryStore(AltCmdFile rootAc)
-            : base(new RootFile(rootAc.StoreId, Guid.Empty),
+            : base(new RootFile(rootAc),
                    new AltCmdFile[] { rootAc },
                    rootAc.BranchId)
         {

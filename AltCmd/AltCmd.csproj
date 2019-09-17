@@ -62,6 +62,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AltCmdSession.cs" />
     <Compile Include="BranchCmdLine.cs" />
     <Compile Include="CheckoutCmdLine.cs" />
     <Compile Include="CloneCmdLine.cs" />

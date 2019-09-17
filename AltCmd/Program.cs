@@ -10,11 +10,11 @@ namespace AltCmd
     /// <summary>
     /// Console application for managing command stores.
     /// </summary>
-    class Program
+    public class Program
     {
         static Logger Log = LogManager.GetCurrentClassLogger();
 
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             try
             {
@@ -31,23 +31,25 @@ namespace AltCmd
                 // current branch (plus branches that have been merged into it)
                 ec.InitializeModels();
 
+                var session = new AltCmdSession(ec);
+
                 if (ec.Store != null && args.Length <= 1)
                 {
                     // Start an interactive command line session if the
                     // command store has been determined, but there are
                     // no other command line arguments.
 
-                    RunSession(ec);
+                    RunSession(session);
                 }
                 else
                 {
                     // Process the command line. Start an interactive session
                     // if that command line leads to a memory store.
 
-                    Process(ec, args);
+                    session.Execute(String.Join(" ", args));
 
                     if (ec.Store is MemoryStore)
-                        RunSession(ec);
+                        RunSession(session);
                 }
             }
 
@@ -145,68 +147,14 @@ namespace AltCmd
         }
 
         /// <summary>
-        /// Processes a command line
-        /// </summary>
-        /// <param name="ec">The execution context (wrapping any command store that is currently active)</param>
-        /// <param name="args">The words in the entered command line (either entered from the operating system
-        /// command line, or in response to a prompt issued by this application).</param>
-        static void Process(ExecutionContext ec, string[] args)
-        {
-            // Handle typical aliases
-            if (args.Length > 0)
-            {
-                var argList = new List<string>(args);
-
-                if (args[0].StartsWith("d") || args[0] == "ls")
-                {
-                    argList[0] = "branch";
-                    argList.Add("--list");
-                }
-                else if (args[0] == "cd" || args[0] == "cb")
-                {
-                    argList[0] = "checkout";
-                }
-                else if (args[0] == "mkdir" || args[0] == "md")
-                {
-                    argList[0] = "branch";
-                }
-                else if (args[0].StartsWith("m"))
-                {
-                    argList[0] = "merge";
-                }
-
-                args = argList.ToArray();
-            }
-
-            var parser = new Parser(c =>
-            {
-                c.CaseInsensitiveEnumValues = true;
-                c.HelpWriter = Console.Out;
-                c.IgnoreUnknownArguments = false;
-                c.AutoVersion = false;
-            });
-
-            var result = parser.ParseArguments
-                <InitCmdLine,
-                CloneCmdLine,
-                BranchCmdLine,
-                CheckoutCmdLine,
-                MergeCmdLine,
-                FetchCmdLine,
-                PushCmdLine,
-                RecallCmdLine,
-                NameCmdLine,
-                CompleteCmdLine>(args)
-                .WithParsed<AltCmdLine>(x => x.Execute(ec));
-        }
-
-        /// <summary>
         /// Runs a command session (by letting the user enter a series
         /// of commands without re-starting the application).
         /// </summary>
-        /// <param name="ec"></param>
-        static void RunSession(ExecutionContext ec)
+        /// <param name="session">The session controller</param>
+        static void RunSession(AltCmdSession session)
         {
+            ExecutionContext ec = session.Context;
+
             for (; ; )
             {
                 Console.Write($"{ec}> ");
@@ -217,14 +165,9 @@ namespace AltCmd
                 try
                 {
                     if (cmd.StartsWith("@"))
-                    {
-                        ProcessCmdFile(ec, cmd.Substring(1));
-                    }
+                        ProcessCmdFile(session, cmd.Substring(1));
                     else
-                    {
-                        string[] args = cmd.Split(' ');
-                        Process(ec, args);
-                    }
+                        session.Execute(cmd);
                 }
 
                 catch (Exception ex)
@@ -237,10 +180,10 @@ namespace AltCmd
         /// <summary>
         /// Processes commands listed in a command file.
         /// </summary>
-        /// <param name="ec">The execution context</param>
+        /// <param name="session">The command session</param>
         /// <param name="fileName">The path for a text file that holds the commands
         /// to be executed (one command per line).</param>
-        static void ProcessCmdFile(ExecutionContext ec, string fileName)
+        static void ProcessCmdFile(AltCmdSession session, string fileName)
         {
             // if the file doesn't have an extension, assume ".cmd"
             bool isExisting = File.Exists(fileName);
@@ -267,8 +210,7 @@ namespace AltCmd
 
                 try
                 {
-                    string[] args = c.Split(' ');
-                    Process(ec, args);
+                    session.Execute(cmd);
                     numDone++;
                 }
 

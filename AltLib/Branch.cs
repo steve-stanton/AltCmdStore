@@ -306,6 +306,9 @@ namespace AltLib
             // Persist the command data
             Store.WriteData(this, data);
 
+            // And remember it as part of this branch
+            Commands.Add(data);
+
             // If the command is being appended to the current branch,
             // ensure it's also included in the stream (the command may
             // not be in the current branch because we may be creating

@@ -45,6 +45,29 @@ namespace AltLib
         /// </summary>
         public CmdStream Stream { get; set; }
 
+        /// <summary>
+        /// Creates a new instance of <see cref="CmdStore"/> that
+        /// represents a brand new command store.
+        /// </summary>
+        /// <param name="storeName">The name for the new store (could be a directory
+        /// path if <paramref name="storeType"/> is <see cref="StoreType.File"/>)</param>
+        /// <param name="storeType">The type of store to create.</param>
+        /// <returns>The newly created command store.</returns>
+        static public CmdStore Create(string storeName, StoreType storeType)
+        {
+            Guid storeId = Guid.NewGuid();
+
+            var c = new CmdData(nameof(ICreateStore), 0, DateTime.UtcNow);
+            c.Add(nameof(ICreateStore.StoreId), storeId);
+            c.Add(nameof(ICreateStore.Name), storeName);
+            c.Add(nameof(ICreateStore.Type), storeType);
+
+            var handler = new CreateStoreHandler(c);
+            var ec = new ExecutionContext();
+            handler.Process(ec);
+            return ec.Store;
+        }
+
         static public CmdStore CreateStore(CmdData args)
         {
             StoreType type = args.GetEnum<StoreType>(nameof(ICreateStore.Type));

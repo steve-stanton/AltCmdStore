@@ -78,5 +78,16 @@ namespace AltLib
             UpstreamLocation = upstreamLocation;
             PushTimes = pushTimes;
         }
+
+        /// <summary>
+        /// Creates a new instance of <see cref="RootFile"/> for
+        /// a brand new command store.
+        /// </summary>
+        /// <param name="ac">The branch metadata for the root branch</param>
+        internal RootFile(AltCmdFile ac)
+            : this(ac.StoreId, Guid.Empty)
+        {
+            DirectoryName = ac.DirectoryName;
+        }
     }
 }

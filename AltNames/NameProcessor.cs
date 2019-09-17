@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using AltLib;
 
 namespace AltNames
@@ -73,6 +72,10 @@ namespace AltNames
             {
                 string name = data.GetValue<string>(nameof(CutCmdLine.Name));
                 int nRem = Names.RemoveAll(x => x == name);
+
+                // This is going to fail if this is getting called when we're rebuilding the model.
+                // Cuts should be handled by marking the adds (to ignore them).
+                // AltNames only works with the one branch
                 data.Add(nameof(NameProcessor.CutCount), nRem);
             }
             else
