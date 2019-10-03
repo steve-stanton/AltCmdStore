@@ -33,10 +33,11 @@ namespace AltLib
         /// Any other commands that make reference to this
         /// command (null if there are no references).
         /// </summary>
-        public List<Cmd> References { get; private set; }
+        public List<Cmd> References { get; internal set; }
 
         /// <summary>
         /// Creates a new instance of <see cref="Cmd"/>
+        /// that is not linked to any other command.
         /// </summary>
         /// <param name="branch">The branch that the command is part of (not null).</param>
         /// <param name="data">The data for the command (not null).</param>

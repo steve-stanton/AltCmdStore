@@ -57,7 +57,7 @@ namespace AltCmd
                 // Confirm that we are not already up to date
                 if (cs.Current.BehindCount == 0)
                 {
-                    Console.WriteLine("Nothing to merge");
+                    Console.WriteLine($"Nothing to merge (at {context})");
                     return false;
                 }
 
@@ -102,7 +102,7 @@ namespace AltCmd
                 // Confirm the parent does not already have everything from the child
                 if (child.AheadCount == 0)
                 {
-                    Console.WriteLine("Nothing to merge");
+                    Console.WriteLine($"Nothing to merge (at {context})");
                     return false;
                 }
 

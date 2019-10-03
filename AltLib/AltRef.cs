@@ -5,6 +5,27 @@ namespace AltLib
     abstract public class AltRef
     {
         /// <summary>
+        /// Attempts to parse a string that is expected to correspond
+        /// to some sort of reference.
+        /// </summary>
+        /// <param name="s">The string to be parsed.</param>
+        /// <param name="result">The parsed reference (or null if the
+        /// supplied string could not be parsed)</param>
+        /// <returns>True if the supplied string was parsed without error.</returns>
+        public static bool TryParse(string s, out AltRef result)
+        {
+            try
+            {
+                result = Create(s);
+                return true;
+            }
+
+            catch { }
+            result = null;
+            return false;
+        }
+
+        /// <summary>
         /// Parses a string representation as an instance of <see cref="AltRef"/>
         /// (as produced by a prior call to <see cref="ToString"/>).
         /// </summary>
@@ -109,21 +130,5 @@ namespace AltLib
         /// <param name="from">The branch that holds this instance</param>
         /// <returns>The branch that is being referred to.</returns>
         abstract protected Branch GetReferencedBranch(Branch from);
-
-        /*
-        Guid g = Guid.NewGuid();
-        var r = new AbsoluteRef(g, 123, 999,"Absolute");
-        //var r = new ParentRef(123, 4, "X");
-        //var r = new LocalRef(123, 999, "abc");
-        var rs = r.ToString();
-        Console.WriteLine(rs);
-        var r2 = AltRef.Create(rs);
-        var rs2 = r2.ToString();
-        if (rs2 == rs)
-            Console.WriteLine("looks ok="+rs2);
-        else
-            Console.WriteLine("fail");
-        return;
-        */
     }
 }

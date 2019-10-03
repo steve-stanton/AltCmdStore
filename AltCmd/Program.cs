@@ -141,7 +141,7 @@ namespace AltCmd
             cs.SaveCurrent();
 
             // Load up the command stream as well
-            cs.Stream = new CmdStream(cs.Current);
+            cs.Stream = cs.Current.CreateStream();
 
             return new ExecutionContext(cs);
         }

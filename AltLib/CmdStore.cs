@@ -179,7 +179,7 @@ namespace AltLib
         {
             Current = branch;
             SaveCurrent();
-            Stream = new CmdStream(Current);
+            Stream = branch.CreateStream();
         }
 
         /// <summary>

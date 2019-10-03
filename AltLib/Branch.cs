@@ -364,6 +364,11 @@ namespace AltLib
                     else
                         Info.LastMerge.Add(fromId, new MergeInfo(numCmd, child.Info.CommandDiscount, 1));
                 }
+
+                // Reload the stream
+                // TODO: Doing it from scratch is perhaps a bit heavy-handed,
+                // is there a more efficient way to do it?
+                Store.Stream = CreateStream();
             }
 
             // Save the mutated branch metadata
@@ -505,6 +510,12 @@ namespace AltLib
         public bool Equals(Branch that)
         {
             return this.Id.Equals(that?.Id);
+        }
+
+        public CmdStream CreateStream()
+        {
+            var fac = new CmdStreamFactory(this);
+            return fac.Create();
         }
     }
 }

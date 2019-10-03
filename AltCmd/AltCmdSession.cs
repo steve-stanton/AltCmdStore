@@ -21,12 +21,27 @@ namespace AltCmd
         public Branch Current => Context.Store.Current;
 
         /// <summary>
+        /// The command stream for the current branch
+        /// </summary>
+        public CmdStream Stream => Context.Store.Stream;
+
+        /// <summary>
         /// Creates a new instance of <see cref="AltCmdSession"/>
         /// </summary>
         /// <param name="ec">The execution context (defining the command store involved)</param>
         public AltCmdSession(ExecutionContext ec)
         {
             Context = ec ?? throw new ArgumentNullException(nameof(Context));
+        }
+
+        /// <summary>
+        /// Processes the supplied command lines.
+        /// </summary>
+        /// <param name="cmds">The command lines to execute</param>
+        public void Execute(string[] cmds)
+        {
+            foreach (string c in cmds)
+                Execute(c);
         }
 
         /// <summary>
@@ -47,7 +62,7 @@ namespace AltCmd
                     argList[0] = "branch";
                     argList.Add("--list");
                 }
-                else if (args[0] == "cd" || args[0] == "cb")
+                else if (args[0] == "cd")
                 {
                     argList[0] = "checkout";
                 }

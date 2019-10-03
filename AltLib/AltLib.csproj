@@ -58,12 +58,13 @@
     <Compile Include="AltCmdLine.cs" />
     <Compile Include="AltRef.cs" />
     <Compile Include="Branch.cs" />
+    <Compile Include="Cmd.cs" />
+    <Compile Include="CmdStreamFactory.cs" />
     <Compile Include="Handlers\CompleteHandler.cs" />
     <Compile Include="Input\IComplete.cs" />
     <Compile Include="MergeInfo.cs" />
     <Compile Include="IdCount.cs" />
     <Compile Include="IdRange.cs" />
-    <Compile Include="Cmd.cs" />
     <Compile Include="CmdStore.cs" />
     <Compile Include="CmdStream.cs" />
     <Compile Include="DictionaryExtensions.cs" />
@@ -93,6 +94,7 @@
     <Compile Include="IRemoteStore.cs" />
     <Compile Include="LocalRef.cs" />
     <Compile Include="MemoryStore.cs" />
+    <Compile Include="MergeSpan.cs" />
     <Compile Include="ParentRef.cs" />
     <Compile Include="ProcessorException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
