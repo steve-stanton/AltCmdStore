@@ -86,6 +86,30 @@ namespace AltCmd
                     return new ExecutionContext();
             }
 
+            // Check for a SQLite database
+            if (args.Length == 1)
+            {
+                string dbFile = args[0];
+                string dbType = Path.GetExtension(dbFile)?.ToLower();
+
+                if (!dbType.IsDefined())
+                {
+                    dbType = ".ac-sqlite";
+                    dbFile += dbType;
+                }
+
+                if (File.Exists(dbFile) && dbType.Contains("sqlite"))
+                {
+                    // Load branch metadata for the store
+                    var ss = SQLiteStore.Load(dbFile);
+                    Log.Info($"Opened {ss.Name} (current branch is {ss.Current.Info.BranchName})");
+
+                    // Load up the command stream as well
+                    ss.Stream = ss.Current.CreateStream();
+                    return new ExecutionContext(ss);
+                }
+            }
+
             string acSpec = null;
             string curDir = null;
 

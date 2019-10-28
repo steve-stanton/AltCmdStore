@@ -58,7 +58,7 @@ namespace AltCmd
                 AltCmdFile ac = cs.Current.Info;
                 uint minSeq = Count < ac.CommandCount ? ac.CommandCount - Count : 0;
                 uint maxSeq = ac.CommandCount - 1;
-                CmdData[] data = cs.Current.ReadData(minSeq, maxSeq).ToArray();
+                CmdData[] data = cs.ReadData(cs.Current, minSeq, maxSeq).ToArray();
 
                 foreach (CmdData cd in data.Reverse())
                 {

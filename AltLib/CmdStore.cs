@@ -53,7 +53,7 @@ namespace AltLib
         /// path if <paramref name="storeType"/> is <see cref="StoreType.File"/>)</param>
         /// <param name="storeType">The type of store to create.</param>
         /// <returns>The newly created command store.</returns>
-        static public CmdStore Create(string storeName, StoreType storeType)
+        public static CmdStore Create(string storeName, StoreType storeType)
         {
             Guid storeId = Guid.NewGuid();
 
@@ -68,20 +68,44 @@ namespace AltLib
             return ec.Store;
         }
 
-        static public CmdStore CreateStore(CmdData args)
+        public static CmdStore CreateStore(CmdData args)
         {
             StoreType type = args.GetEnum<StoreType>(nameof(ICreateStore.Type));
 
             if (type == StoreType.File)
                 return FileStore.Create(args);
 
-            //if (type == StoreType.SQLite)
-            //    return SQLiteStore.Create(args);
+            if (type == StoreType.SQLite)
+                return SQLiteStore.Create(args);
 
             if (type == StoreType.Memory)
                 return MemoryStore.Create(args);
 
             throw new NotImplementedException(type.ToString());
+        }
+
+        /// <summary>
+        /// Checks whether a folder is on a local fixed drive.
+        /// </summary>
+        /// <param name="folderPath">The path for the folder to be checked.</param>
+        /// <returns>
+        /// True if the specified folder is on a local fixed drive.
+        /// </returns>
+        protected static bool IsLocalDrive(string folderPath)
+        {
+            string root = Path.GetPathRoot(folderPath);
+
+            foreach (DriveInfo d in DriveInfo.GetDrives())
+            {
+                if (d.DriveType == DriveType.Fixed)
+                {
+                    // The folder name may have been supplied by the user
+                    if (d.Name.EqualsIgnoreCase(root))
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -195,14 +219,14 @@ namespace AltLib
         }
 
         /// <summary>
-        /// Reads the command data for a specific command in
-        /// a specific branch.
+        /// Reads the command data for a range of commands in a specific branch.
         /// </summary>
         /// <param name="branch">Details for the branch to read from.</param>
-        /// <param name="sequence">The 0-based sequence number of
-        /// the command to read.</param>
-        /// <returns>The corresponding command data</returns>
-        abstract public CmdData ReadData(Branch branch, uint sequence);
+        /// <param name="minCmd">The sequence number of the first command to be read.</param>
+        /// <param name="maxCmd">The sequence number of the last command to be read</param>
+        /// <returns>The commands in the specified range (ordered by their data entry sequence).
+        /// </returns>
+        public abstract IEnumerable<CmdData> ReadData(Branch branch, uint minCmd, uint maxCmd);
 
         /// <summary>
         /// Persists command data as part of the current branch.
@@ -212,7 +236,7 @@ namespace AltLib
         /// <remarks>
         /// To be called only by <see cref="Branch.SaveData"/>
         /// </remarks>
-        abstract internal void WriteData(Branch branch, CmdData data);
+        internal abstract void WriteData(Branch branch, CmdData data);
 
         /// <summary>
         /// Checks whether the name supplied for a new branch is valid.

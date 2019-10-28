@@ -78,7 +78,7 @@ namespace AltLib
             }
 
             Log.Trace($"Loading {Info.CommandCount} commands for {ToString()}");
-            Commands.AddRange(ReadData(0, Info.CommandCount - 1));
+            Commands.AddRange(Store.ReadData(this, 0, Info.CommandCount - 1));
         }
 
         /// <summary>
@@ -97,7 +97,7 @@ namespace AltLib
             if (cmdCount > Commands.Count)
             {
                 Log.Trace($"Loading commands [{Commands.Count},{cmdCount - 1}] for {ToString()}");
-                Commands.AddRange(ReadData((uint)Commands.Count, cmdCount - 1));
+                Commands.AddRange(Store.ReadData(this, (uint)Commands.Count, cmdCount - 1));
             }
         }
 
@@ -373,23 +373,6 @@ namespace AltLib
 
             // Save the mutated branch metadata
             Store.Save(Info);
-        }
-
-        /// <summary>
-        /// Reads the command data for a range of commands in the current branch.
-        /// </summary>
-        /// <param name="minSeq">The sequence number of the first command to be read.</param>
-        /// <param name="maxSeq">The sequence number of the last command to be read</param>
-        /// <returns>The commands in the specified range (ordered by
-        /// their data entry sequence).
-        /// </returns>
-        public IEnumerable<CmdData> ReadData(uint minSeq, uint maxSeq)
-        {
-            // If the store is a relational database, an override that performs
-            // a single range query would likely be better.
-
-            for (uint i = minSeq; i <= maxSeq; i++)
-                yield return Store.ReadData(this, i);
         }
 
         /// <summary>

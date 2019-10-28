@@ -48,11 +48,11 @@ namespace AltLib
         }
 
         /// <summary>
-        /// Produces a string that does not contains unecessary plurals.
+        /// Produces a string that does not contains unnecessary plurals.
         /// </summary>
         /// <param name="s">The string to de-pluralize</param>
         /// <param name="pluralPrefix">The marker that precedes characters that may need to be stripped.</param>
-        /// <returns>A potentially modified string with any unecessary characters removed.</returns>
+        /// <returns>A potentially modified string with any unnecessary characters removed.</returns>
         /// <remarks>
         /// This is a matter of looking for a word that contains <paramref name="pluralPrefix"/>,
         /// then looking for a previous word that can be converted into an integer. If that

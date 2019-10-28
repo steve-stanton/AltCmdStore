@@ -32,7 +32,7 @@ namespace AltLib
         internal CmdStream Create()
         {
             // Start out by faking a merge of the whole main branch into itself
-            var ms = new MergeSpan(Main, 0, Main.Info.CommandCount - 1, Main);
+            var ms = new MergeSpan(Main, 0, Main.Info.CommandCount - 1, Main, 0);
             Link(ms);
 
             // Follow ancestors as well (up to the branch point)
@@ -71,7 +71,7 @@ namespace AltLib
                         maxCmd = last.Data.Sequence - 1;
                     }
 
-                    ms = new MergeSpan(b.Parent, 0, maxCmd, b);
+                    ms = new MergeSpan(b.Parent, 0, maxCmd, b, 0);
                     Link(ms);
                 }
             }
@@ -131,7 +131,10 @@ namespace AltLib
         /// <param name="ms">The range of commands to be linked</param>
         void Link(MergeSpan ms)
         {
-            // Get the command data for the branch we need to walk
+            Log.Trace($"Merge {ms.Source}[{ms.MinCmd},{ms.MaxCmd}] into {ms.Target}");
+
+            // Get the command data for the branch we need to walk (these
+            // are the commands we need to merge)
             CmdData[] sourceData = GetSourceData(ms);
 
             // Walk back through the commands in the merge range
@@ -148,25 +151,34 @@ namespace AltLib
 
                     IMerge merge = cd as IMerge;
 
-                    // If we have reached a reverse merge (the source has merged
-                    // from the target), attach a truncated span at the start of
-                    // the merge range in the target. When we ultimately reach that
-                    // command, we will continue the merge.
+                    // If we have reached a reverse merge (the branch we are
+                    // merging from has merged back), attach a truncated span at
+                    // the start of the merge range in the target. When we ultimately
+                    // reach that command, we will continue the merge.
 
-                    if (merge.FromId.Equals(ms.Target.Id))
+                    if (merge.FromId.Equals(ms.Target.Id))// && cd.Sequence < ms.MaxCmd)
                     {
-                        // Define the portion of the source span that needs to be handled later
-                        var truncatedRange = new MergeSpan(
-                            ms.Source, ms.MinCmd, cd.Sequence - 1, ms.Target);
+                        // Don't bother if the reverse merge is the very end of
+                        // the merge range (there's nothing more to inject before
+                        // we return to continue with the stream in the target)
 
-                        // Attach the span somewhere in the range of the merge
-                        AddMergeSpan(merge.MinCmd, merge.MaxCmd, truncatedRange);
+                        //if (cd.Sequence > ms.MinCmd && cd.Sequence < ms.MaxCmd)
+                        if (cd.Sequence > ms.MinCmd)
+                        {
+                            // Define the portion of the source span that needs to be handled later
+                            var truncatedRange = new MergeSpan(
+                                ms.Source, ms.MinCmd, cd.Sequence - 1, ms.Target, ms.Sequence);
+
+                            // Attach the span somewhere in the range of the merge
+                            AddMergeSpan(merge.MinCmd, merge.MaxCmd, truncatedRange);
+                        }
+
                         return;
                     }
 
                     // Express the merge as a span & link that
                     Branch newSource = ms.Source.Store.FindBranch(merge.FromId);
-                    var span = new MergeSpan(newSource, merge.MinCmd, merge.MaxCmd, ms.Source);
+                    var span = new MergeSpan(newSource, merge.MinCmd, merge.MaxCmd, ms.Source, cd.Sequence);
                     Link(span);
                 }
                 else
@@ -239,8 +251,13 @@ namespace AltLib
             if (result == null)
                 return Enumerable.Empty<MergeSpan>();
 
+            if (result.Count > 1)
+            {
+                int junk = 0;
+            }
+
             data.Remove(nameof(MergeSpan));
-            return result;
+            return result.OrderByDescending(x => x.Sequence);
         }
     }
 }

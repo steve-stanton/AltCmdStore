@@ -205,8 +205,7 @@ namespace AltLib
                 Debug.Assert(parent != null);
 
                 // Create the new branch
-                branch = new Branch(this, ac);
-                branch.Parent = parent;
+                branch = new Branch(this, ac) {Parent = parent};
                 parent.Children.Add(branch);
                 Branches.Add(ac.BranchId, branch);
             }
@@ -244,30 +243,6 @@ namespace AltLib
             var result = FileStore.Load(acPath);
             Log.Info($"Cloning from {result.Name}");
             return result;
-        }
-
-        /// <summary>
-        /// Checks whether a folder is on a local fixed drive.
-        /// </summary>
-        /// <param name="folderPath">The path for the folder to be checked.</param>
-        /// <returns>
-        /// True if the specified folder is on a local fixed drive.
-        /// </returns>
-        static bool IsLocalDrive(string folderPath)
-        {
-            string root = Path.GetPathRoot(folderPath);
-
-            foreach (DriveInfo d in DriveInfo.GetDrives())
-            {
-                if (d.DriveType == DriveType.Fixed)
-                {
-                    // The folder name may have been supplied by the user
-                    if (d.Name.EqualsIgnoreCase(root))
-                        return true;
-                }
-            }
-
-            return false;
         }
 
         /// <summary>
@@ -387,7 +362,7 @@ namespace AltLib
         /// <param name="sequence">The 0-based sequence number of
         /// the command to read.</param>
         /// <returns>The corresponding command data</returns>
-        public override CmdData ReadData(Branch branch, uint sequence)
+        CmdData ReadData(Branch branch, uint sequence)
         {
             string dataPath = Path.Combine(branch.Info.DirectoryName, $"{sequence}.json");
             if (!File.Exists(dataPath))
@@ -398,7 +373,21 @@ namespace AltLib
         }
 
         /// <summary>
-        /// Persists command data as part of the current branch.
+        /// Reads the command data for a range of commands in a specific branch.
+        /// </summary>
+        /// <param name="branch">Details for the branch to read from.</param>
+        /// <param name="minCmd">The sequence number of the first command to be read.</param>
+        /// <param name="maxCmd">The sequence number of the last command to be read</param>
+        /// <returns>The commands in the specified range (ordered by their data entry sequence).
+        /// </returns>
+        public override IEnumerable<CmdData> ReadData(Branch branch, uint minCmd, uint maxCmd)
+        {
+            for (uint i = minCmd; i <= maxCmd; i++)
+                yield return ReadData(branch, i);
+        }
+
+        /// <summary>
+        /// Persists command data as part of a specific branch.
         /// </summary>
         /// <param name="branch">The branch the data relates to</param>
         /// <param name="data">The data to be written</param>

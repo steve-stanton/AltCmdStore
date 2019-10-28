@@ -76,7 +76,7 @@ namespace AltLib
         /// <param name="sequence">The 0-based sequence number of
         /// the command to read.</param>
         /// <returns>The corresponding command data</returns>
-        public override CmdData ReadData(Branch branch, uint sequence)
+        CmdData ReadData(Branch branch, uint sequence)
         {
             string dataPath = Path.Combine(branch.Info.DirectoryName, $"{sequence}.json");
 
@@ -84,6 +84,20 @@ namespace AltLib
                 return JsonConvert.DeserializeObject<CmdData>(Data[dataPath]);
 
             throw new ArgumentException("No such file: " + dataPath);
+        }
+
+        /// <summary>
+        /// Reads the command data for a range of commands in a specific branch.
+        /// </summary>
+        /// <param name="branch">Details for the branch to read from.</param>
+        /// <param name="minCmd">The sequence number of the first command to be read.</param>
+        /// <param name="maxCmd">The sequence number of the last command to be read</param>
+        /// <returns>The commands in the specified range (ordered by their data entry sequence).
+        /// </returns>
+        public override IEnumerable<CmdData> ReadData(Branch branch, uint minCmd, uint maxCmd)
+        {
+            for (uint i = minCmd; i <= maxCmd; i++)
+                yield return ReadData(branch, i);
         }
 
         /// <summary>
