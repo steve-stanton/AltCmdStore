@@ -144,6 +144,12 @@ namespace AltLib
             // help with multi-threaded transactions, but I see no immediate need
             // for that sort of data processing.
 
+            // TODO: One thing that may not be considered is a situation where
+            // something like ExecuteQuery is called and, somewhere inside the
+            // IDataQuery implementation, it starts a transaction. Given the
+            // limited requirements by AltCmd software, I can't imagine why you
+            // would ever need to do that. But it's possible.
+
             using (var ts = new TransactionScope())
             {
                 Exec(transactionBody);

@@ -45,29 +45,25 @@ namespace AltLib
             if (!IsLocalDrive(fullSpec))
                 throw new ApplicationException("Command stores can only be initialized on a local fixed drive");
 
-            Log.Info("Creating " + fullSpec);
-            SQLiteDatabase db = CreateDatabase(fullSpec);
-
             Guid storeId = args.GetGuid(nameof(ICreateStore.StoreId));
             SQLiteStore result = null;
 
             if (args.CmdName == nameof(ICloneStore))
             {
-                throw new NotImplementedException();
-                /*
+                // Copy the SQLite database
+                // TODO: To handle database files on remote machines
                 ICloneStore cs = (args as ICloneStore);
-                IRemoteStore rs = GetRemoteStore(cs);
+                Log.Info($"Copying {cs.Origin} to {fullSpec}");
+                File.Copy(cs.Origin, fullSpec);
 
-                // Retrieve metadata for all remote branches
-                AltCmdFile[] acs = rs.GetBranches()
-                    .OrderBy(x => x.CreatedAt)
-                    .ToArray();
-
-                var acsByBranch = acs.ToDictionary(x => x.BranchId);
-                */
+                // Load the copied store
+                result = SQLiteStore.Load(fullSpec, cs);
             }
             else
             {
+                Log.Info("Creating " + fullSpec);
+                SQLiteDatabase db = CreateDatabase(fullSpec);
+
                 // Create the AC file that represents the store root branch
                 var ac = new AltCmdFile(storeId: storeId,
                     parentId: Guid.Empty,
@@ -306,16 +302,27 @@ namespace AltLib
         /// Loads a command store using the metadata for one of the branches
         /// in the store.
         /// </summary>
-        /// <param name="acSpec">The path to an AC file within the store (to
-        /// define as the "current" branch in the returned store).</param>
-        /// <returns>The command store that contains the specified AC file.</returns>
-        public static SQLiteStore Load(string sqliteFilename)
+        /// <param name="sqliteFilename">The file specification of the SQLite database
+        /// to load.</param>
+        /// <param name="cs">Details for a clone command that should be used
+        /// to initialize the root metadata for a newly cloned store (specify
+        /// null if this store previously existed).</param>
+        /// <returns>The loaded command store.</returns>
+        public static SQLiteStore Load(string sqliteFilename, ICloneStore cs = null)
         {
             var db = new SQLiteDatabase(sqliteFilename);
 
             // Load misc properties
             Dictionary<string,object> props = db.ExecuteQuery(new PropertiesQuery())
                                                 .ToDictionary(x => x.Key, x => (object)x.Value);
+
+            if (cs != null)
+            {
+                Guid upstreamId = props.GetGuid(PropertyNaming.StoreId.ToString());
+                props[PropertyNaming.UpstreamId.ToString()] = upstreamId;
+                props[PropertyNaming.UpstreamLocation.ToString()] = cs.Origin;
+                props[PropertyNaming.StoreId.ToString()] = cs.StoreId;
+            }
 
             var root = new RootFile(
                 storeId: props.GetGuid(PropertyNaming.StoreId.ToString()),
@@ -343,6 +350,11 @@ namespace AltLib
 
             var result = new SQLiteStore(root, acs, curId, db);
 
+            // If we amended the store properties for a new clone, save
+            // them back to the database
+            if (cs != null)
+                result.SaveRoot();
+            
             // At this stage, the FileName property held in branch metadata (as returned
             // by BranchesQuery) is simply the name. To ensure things mimic the logic in
             // FileStore, we need to define a fake FileName property that reflects the

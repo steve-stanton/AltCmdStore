@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using AltLib;
 using CommandLine;
 
@@ -32,10 +33,11 @@ namespace AltCmd
         [Value(
             1,
             Required = true,
-            HelpText = "The name of a new directory to clone into",
+            HelpText = "The command store to create",
             MetaName = "to")]
         public string To { get; private set; }
 
+        /*
         /// <summary>
         /// The persistence mechanism to be used for saving command data
         /// in the clone store.
@@ -46,6 +48,7 @@ namespace AltCmd
             Default = StoreType.File,
             HelpText = "Specify how command data should be persisted by the clone")]
         public StoreType Type { get; set; }
+        */
 
         /// <summary>
         /// The unique ID to use for the cloned store.
@@ -58,7 +61,7 @@ namespace AltCmd
         /// <returns>The command line text (without any abbreviations)</returns>
         public override string ToString()
         {
-            return $"clone {Origin} {To} --type {Type}";
+            return $"clone {Origin} {To}";
         }
 
         protected override ICmdHandler GetCommandHandler(ExecutionContext context)
@@ -70,9 +73,25 @@ namespace AltCmd
 
             data.Add(nameof(ICreateStore.StoreId), StoreId);
             data.Add(nameof(ICreateStore.Name), To);
-            data.Add(nameof(ICreateStore.Type), Type.ToString());
-
             data.Add(nameof(ICloneStore.Origin), Origin);
+
+            // For the time being, only clone to the same type as the origin (you should
+            // really be allowed to clone from one type into another)
+            StoreType type = StoreType.None;
+
+            if (Directory.Exists(Origin))
+                type = StoreType.File;
+            else
+            {
+                string dbSpec = Path.HasExtension(Origin) ? Origin : Origin + ".ac-sqlite";
+                if (File.Exists(dbSpec))
+                    type = StoreType.SQLite;
+            }
+
+            if (type == StoreType.None)
+                throw new ArgumentException("Cannot determine store type for " + Origin);
+
+            data.Add(nameof(ICreateStore.Type), type);
 
             return new CloneStoreHandler(data);
         }
