@@ -90,7 +90,7 @@ namespace AltNames
             {
                 // If nothing was specified, look in the current folder
                 string curDir = Directory.GetCurrentDirectory();
-                acSpec = AltCmdFile.GetAcPath(curDir);
+                acSpec = BranchInfo.GetAcPath(curDir);
 
                 // If nothing in current folder, check last used branch
                 if (acSpec == null)
@@ -116,7 +116,7 @@ namespace AltNames
                 }
                 else if (Directory.Exists(branchRef))
                 {
-                    acSpec = AltCmdFile.GetAcPath(branchRef);
+                    acSpec = BranchInfo.GetAcPath(branchRef);
                     if (acSpec == null)
                         throw new ArgumentException("Specified folder does not contain any command data");
                 }

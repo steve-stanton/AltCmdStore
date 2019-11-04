@@ -55,7 +55,7 @@ namespace AltCmd
             }
             else
             {
-                AltCmdFile ac = cs.Current.Info;
+                BranchInfo ac = cs.Current.Info;
                 uint minSeq = Count < ac.CommandCount ? ac.CommandCount - Count : 0;
                 uint maxSeq = ac.CommandCount - 1;
                 CmdData[] data = cs.ReadData(cs.Current, minSeq, maxSeq).ToArray();

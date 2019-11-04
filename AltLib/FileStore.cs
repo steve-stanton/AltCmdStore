@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NLog;
 
@@ -12,6 +10,11 @@ namespace AltLib
 {
     public class FileStore : CmdStore
     {
+        /// <summary>
+        /// The name of the file that holds root metadata for the command store.
+        /// </summary>
+        const string RootName = ".root";
+
         static Logger Log = LogManager.GetCurrentClassLogger();
 
         static internal FileStore Create(CmdData args)
@@ -44,7 +47,7 @@ namespace AltLib
             // confirm that it does not already hold any AC files).
             if (Directory.Exists(folderName))
             {
-                if (AltCmdFile.GetAcPath(folderName) != null)
+                if (BranchInfo.GetAcPath(folderName) != null)
                     throw new ApplicationException($"{folderName} has already been initialized");
             }
             else
@@ -66,14 +69,14 @@ namespace AltLib
                 IRemoteStore rs = GetRemoteStore(cs);
 
                 // Retrieve metadata for all remote branches
-                AltCmdFile[] acs = rs.GetBranches()
+                BranchInfo[] acs = rs.GetBranches()
                                      .OrderBy(x => x.CreatedAt)
                                      .ToArray();
 
                 var acsByBranch = acs.ToDictionary(x => x.BranchId);
 
                 // Copy over all branches
-                foreach (AltCmdFile ac in acs)
+                foreach (BranchInfo ac in acs)
                 {
                     // Get the data for the branch (do this before we do any tweaking
                     // of the folder path from the AC file -- if the command supplier is
@@ -90,7 +93,7 @@ namespace AltLib
                     // location that should have already been defined for the parent)
 
                     string dataFolder = null;
-                    if (acsByBranch.TryGetValue(ac.ParentId, out AltCmdFile parentAc))
+                    if (acsByBranch.TryGetValue(ac.ParentId, out BranchInfo parentAc))
                     {
                         dataFolder = Path.Combine(parentAc.DirectoryName, ac.BranchName);
                         Directory.CreateDirectory(dataFolder);
@@ -119,7 +122,7 @@ namespace AltLib
                     origin = Path.GetFullPath(origin);
 
                 // Save the root metadata
-                var root = new RootFile(storeId, rs.Id, origin);
+                var root = new RootInfo(storeId, rs.Id, origin);
                 root.DirectoryName = folderName;
                 FileStore.SaveRoot(root);
 
@@ -129,20 +132,20 @@ namespace AltLib
             else
             {
                 // Create the AC file that represents the store root branch
-                var ac = new AltCmdFile(storeId: storeId,
+                var ac = new BranchInfo(storeId: storeId,
                                         parentId: Guid.Empty,
                                         branchId: storeId,
                                         createdAt: args.CreatedAt);
 
                 // Create a new root
-                var root = new RootFile(storeId, Guid.Empty);
+                var root = new RootInfo(storeId, Guid.Empty);
 
                 // Create the store and save it
                 ac.FileName = Path.Combine(folderName, storeId + ".ac");
                 root.DirectoryName = folderName;
 
                 result = new FileStore(root,
-                                       new AltCmdFile[] { ac },
+                                       new BranchInfo[] { ac },
                                        ac.BranchId);
 
                 // Save the AC file plus the root metadata
@@ -162,7 +165,7 @@ namespace AltLib
         /// <param name="altName">An alternative name to assign to the branch.</param>
         /// <exception cref="ApplicationException">
         /// Attempt to import remote data into a local branch</exception>
-        public override void CopyIn(AltCmdFile ac, CmdData[] data, string altName = null)
+        public override void CopyIn(BranchInfo ac, CmdData[] data, string altName = null)
         {
             // The incoming data can only come from a remote store
             Debug.Assert(!ac.StoreId.Equals(this.Id));
@@ -235,7 +238,7 @@ namespace AltLib
         static IRemoteStore GetRemoteStore(ICloneStore cs)
         {
             string origin = cs.Origin;
-            string acPath = AltCmdFile.GetAcPath(origin);
+            string acPath = BranchInfo.GetAcPath(origin);
 
             if (acPath == null)
                 throw new ApplicationException("Cannot locate any AC file in source");
@@ -263,13 +266,13 @@ namespace AltLib
             var root = FindRoot(dirInfo);
 
             // Load all AC files in the tree
-            AltCmdFile[] acs = Load(dirInfo).OrderBy(x => x.CreatedAt).ToArray();
+            BranchInfo[] acs = Load(dirInfo).OrderBy(x => x.CreatedAt).ToArray();
             //Log.Info($"Loaded {acs.Length} AC files");
 
             return new FileStore(root, acs, ac.BranchId);
         }
 
-        static RootFile FindRoot(DirectoryInfo dirInfo)
+        static RootInfo FindRoot(DirectoryInfo dirInfo)
         {
             DirectoryInfo rootDir = FindRootDirectory(dirInfo);
 
@@ -289,7 +292,7 @@ namespace AltLib
         {
             for (var d = dirInfo; d != null; d = d.Parent)
             {
-                string fileName = Path.Combine(d.FullName, RootFile.Name);
+                string fileName = Path.Combine(d.FullName, RootName);
                 if (File.Exists(fileName))
                     return d;
             }
@@ -302,11 +305,11 @@ namespace AltLib
         /// </summary>
         /// <param name="folderName">The path for the root folder of a command store.</param>
         /// <returns>The root metadata in the specified folder.</returns>
-        static RootFile ReadRoot(string folderName)
+        static RootInfo ReadRoot(string folderName)
         {
-            string fileName = Path.Combine(folderName, RootFile.Name);
+            string fileName = Path.Combine(folderName, RootName);
             string data = File.ReadAllText(fileName);
-            var result = JsonConvert.DeserializeObject<RootFile>(data);
+            var result = JsonConvert.DeserializeObject<RootInfo>(data);
             result.DirectoryName = folderName;
             return result;
         }
@@ -319,7 +322,7 @@ namespace AltLib
         /// <returns>
         /// The AC files present in the directory tree beneath the specified root.
         /// </returns>
-        static IEnumerable<AltCmdFile> Load(DirectoryInfo rootFolder)
+        static IEnumerable<BranchInfo> Load(DirectoryInfo rootFolder)
         {
             foreach (FileInfo f in rootFolder.EnumerateFiles("*.ac", SearchOption.AllDirectories))
             {
@@ -328,15 +331,15 @@ namespace AltLib
         }
 
         /// <summary>
-        /// Reads a file containing an instance of <see cref="AltCmdFile"/>
+        /// Reads a file containing an instance of <see cref="BranchInfo"/>
         /// </summary>
         /// <param name="fileName">The file to read (could
         /// potentially be a relative file specification)</param>
         /// <returns>The content of the file</returns>
-        static public AltCmdFile ReadAc(string fileName)
+        static public BranchInfo ReadAc(string fileName)
         {
             string data = File.ReadAllText(fileName);
-            var result = JsonConvert.DeserializeObject<AltCmdFile>(data);
+            var result = JsonConvert.DeserializeObject<BranchInfo>(data);
             result.FileName = Path.GetFullPath(fileName);
             return result;
         }
@@ -347,8 +350,8 @@ namespace AltLib
         /// <param name="rootInfo">Root metadata for this store.</param>
         /// <param name="branches">The branches in the store (not null or empty)</param>
         /// <param name="currentId">The ID of the currently checked out branch</param>
-        internal FileStore(RootFile rootInfo,
-                           AltCmdFile[] branches,
+        internal FileStore(RootInfo rootInfo,
+                           BranchInfo[] branches,
                            Guid currentId)
             : base(rootInfo, branches, currentId)
         {
@@ -412,7 +415,7 @@ namespace AltLib
         /// Saves the supplied branch metadata as part of this store.
         /// </summary>
         /// <param name="ac">The metadata to be saved</param>
-        public override void Save(AltCmdFile ac)
+        public override void Save(BranchInfo ac)
         {
             if (ac.FileName == null)
                 throw new ArgumentNullException("Cannot save AC file because name is undefined");
@@ -430,14 +433,14 @@ namespace AltLib
             SaveRoot(Root);
         }
 
-        static void SaveRoot(RootFile root)
+        static void SaveRoot(RootInfo root)
         {
             if (root.DirectoryName == null)
                 throw new ArgumentNullException("Cannot save root because location is undefined");
 
             Directory.CreateDirectory(root.DirectoryName);
             string data = JsonConvert.SerializeObject(root, Formatting.Indented);
-            string fileName = Path.Combine(root.DirectoryName, RootFile.Name);
+            string fileName = Path.Combine(root.DirectoryName, RootName);
             File.WriteAllText(fileName, data);
         }
     }

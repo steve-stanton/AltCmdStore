@@ -38,7 +38,7 @@ namespace AltLib
         public void Process(ExecutionContext context)
         {
             CmdStore cs = context.Store;
-            RootFile root = cs.Root;
+            RootInfo root = cs.Root;
             string upLoc = root.UpstreamLocation;
             if (String.IsNullOrEmpty(upLoc))
                 throw new ApplicationException("There is no upstream location");
@@ -65,13 +65,13 @@ namespace AltLib
             // Retrieve the command data from the remote, keeping new branches
             // apart from appends to existing branches.
 
-            var newBranchData = new Dictionary<AltCmdFile, CmdData[]>();
-            var moreBranchData = new Dictionary<AltCmdFile, CmdData[]>();
+            var newBranchData = new Dictionary<BranchInfo, CmdData[]>();
+            var moreBranchData = new Dictionary<BranchInfo, CmdData[]>();
 
             foreach (IdRange idr in toFetch)
             {
                 // Fetch the remote AC file
-                AltCmdFile ac = rs.GetBranchInfo(idr.Id);
+                BranchInfo ac = rs.GetBranchInfo(idr.Id);
                 if (ac == null)
                     throw new ApplicationException("Could not locate remote branch " + idr.Id);
 
@@ -91,13 +91,13 @@ namespace AltLib
             // right order so that parent/child relationships can be formed
             // as we go).
 
-            foreach (KeyValuePair<AltCmdFile, CmdData[]> kvp in newBranchData.OrderBy(x => x.Key.CreatedAt))
+            foreach (KeyValuePair<BranchInfo, CmdData[]> kvp in newBranchData.OrderBy(x => x.Key.CreatedAt))
                 cs.CopyIn(kvp.Key, kvp.Value);
 
             // Append command data for branches we previously had (the order
             // shouldn't matter)
 
-            foreach (KeyValuePair<AltCmdFile, CmdData[]> kvp in moreBranchData)
+            foreach (KeyValuePair<BranchInfo, CmdData[]> kvp in moreBranchData)
                 cs.CopyIn(kvp.Key, kvp.Value);
 
             Log.Info("Fetch completed");

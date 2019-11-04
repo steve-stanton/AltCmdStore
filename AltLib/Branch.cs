@@ -21,7 +21,7 @@ namespace AltLib
         /// <summary>
         /// Metadata relating to the branch.
         /// </summary>
-        public AltCmdFile Info { get; internal set; }
+        public BranchInfo Info { get; internal set; }
 
         /// <summary>
         /// The parent branch (if any).
@@ -51,7 +51,7 @@ namespace AltLib
         /// <param name="ac">Metadata relating to the branch (not null)</param>
         /// <exception cref="ArgumentNullException">
         /// The supplied command store or metadata is undefined</exception>
-        internal Branch(CmdStore store, AltCmdFile ac)
+        internal Branch(CmdStore store, BranchInfo ac)
         {
             Store = store ?? throw new ArgumentNullException(nameof(store));
             Info = ac ?? throw new ArgumentNullException(nameof(ac));

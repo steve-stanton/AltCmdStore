@@ -14,7 +14,7 @@ namespace AltLib
         /// <summary>
         /// Root metadata for the store.
         /// </summary>
-        public RootFile Root { get; }
+        public RootInfo Root { get; }
 
         /// <summary>
         /// The unique ID for this store.
@@ -114,8 +114,8 @@ namespace AltLib
         /// <param name="rootInfo">Root metadata for this store.</param>
         /// <param name="acInfo">Metadata for the branches in the store</param>
         /// <param name="currentId">The ID of the currently checked out branch</param>
-        protected CmdStore(RootFile rootInfo,
-                           AltCmdFile[] acInfo,
+        protected CmdStore(RootInfo rootInfo,
+                           BranchInfo[] acInfo,
                            Guid currentId)
         {
             if (acInfo == null || acInfo.Length == 0)
@@ -274,7 +274,7 @@ namespace AltLib
         /// Saves the supplied branch metadata as part of this store.
         /// </summary>
         /// <param name="ac">The metadata to be saved</param>
-        abstract public void Save(AltCmdFile ac);
+        abstract public void Save(BranchInfo ac);
 
         /// <summary>
         /// Saves the root metadata as part of this store.
@@ -299,7 +299,7 @@ namespace AltLib
         /// </summary>
         /// <param name="branchId">The ID of the branch to retrieve.</param>
         /// <returns>Metadata for the branch (null if not found).</returns>
-        AltCmdFile IRemoteStore.GetBranchInfo(Guid branchId)
+        BranchInfo IRemoteStore.GetBranchInfo(Guid branchId)
         {
             return FindBranch(branchId)?.Info;
         }
@@ -311,7 +311,7 @@ namespace AltLib
         /// <returns>The branches known to the supply
         /// (the order you get items back is not specified, it could be
         /// entirely random).</returns>
-        IEnumerable<AltCmdFile> IRemoteStore.GetBranches()
+        IEnumerable<BranchInfo> IRemoteStore.GetBranches()
         {
             return Branches.Values.Select(x => x.Info);
         }
@@ -420,7 +420,7 @@ namespace AltLib
         /// <param name="ac">The branch metadata received from a remote store.</param>
         /// <param name="data">The command data for the branch</param>
         /// <param name="altName">An alternative name to assign to the branch.</param>
-        public virtual void CopyIn(AltCmdFile ac, CmdData[] data, string altName = null)
+        public virtual void CopyIn(BranchInfo ac, CmdData[] data, string altName = null)
         {
             // Currently implemented only by FileStore
             throw new NotImplementedException();
@@ -433,11 +433,11 @@ namespace AltLib
         /// the source of the data.</param>
         /// <param name="ac">The metadata for the branch the commands are part of.</param>
         /// <param name="data">The command data to be appended to the remote branch.</param>
-        void IRemoteStore.Push(string source, AltCmdFile ac, CmdData[] data)
+        void IRemoteStore.Push(string source, BranchInfo ac, CmdData[] data)
         {
             // Clone the supplied metadata (if the call actually comes from
             // the current application, we don't want to mutate the metadata)
-            AltCmdFile acCopy = ac.CreateCopy();
+            BranchInfo acCopy = ac.CreateCopy();
 
             string altName = acCopy.BranchName == "+" ? source : null;
             CopyIn(acCopy, data, altName);

@@ -70,7 +70,7 @@ namespace AltLib
                 SQLiteDatabase db = CreateDatabase(fullSpec);
 
                 // Create the AC file that represents the store root branch
-                var ac = new AltCmdFile(storeId: storeId,
+                var ac = new BranchInfo(storeId: storeId,
                     parentId: Guid.Empty,
                     branchId: storeId,
                     createdAt: args.CreatedAt);
@@ -79,13 +79,13 @@ namespace AltLib
                 ac.FileName = Path.Combine(folderName, name, $"{storeId}.ac");
 
                 // Create a new root
-                var root = new RootFile(storeId, Guid.Empty);
+                var root = new RootInfo(storeId, Guid.Empty);
                 root.DirectoryName = Path.Combine(folderName, name);
 
                 // Create the store and save it
                 result = new SQLiteStore(
                                 root,
-                                new AltCmdFile[] { ac },
+                                new BranchInfo[] { ac },
                                 ac.BranchId, 
                                 db);
 
@@ -109,8 +109,8 @@ namespace AltLib
         /// <param name="branches">The branches in the store (not null or empty)</param>
         /// <param name="currentId">The ID of the currently checked out branch</param>
         /// <param name="db">The database that holds the store content</param>
-        internal SQLiteStore(RootFile rootInfo,
-                             AltCmdFile[] branches,
+        internal SQLiteStore(RootInfo rootInfo,
+                             BranchInfo[] branches,
                              Guid currentId,
                              SQLiteDatabase db)
             : base(rootInfo, branches, currentId)
@@ -139,7 +139,7 @@ namespace AltLib
         /// </summary>
         /// <param name="ac">The metadata to be saved</param>
         /// <exception cref="ArgumentNullException">Cannot save because name is undefined</exception>
-        public override void Save(AltCmdFile ac)
+        public override void Save(BranchInfo ac)
         {
             if (ac.FileName == null)
                 throw new ArgumentNullException("Cannot save because name is undefined");
@@ -333,7 +333,7 @@ namespace AltLib
                 props[PropertyNaming.StoreId.ToString()] = cs.StoreId;
             }
 
-            var root = new RootFile(
+            var root = new RootInfo(
                 storeId: props.GetGuid(PropertyNaming.StoreId.ToString()),
                 upstreamId: props.GetGuid(PropertyNaming.UpstreamId.ToString()),
                 upstreamLocation: props.GetValue<string>(PropertyNaming.UpstreamLocation.ToString()),
@@ -350,7 +350,7 @@ namespace AltLib
                 curId = root.StoreId;
 
             // Load metadata for all branches in the store
-            AltCmdFile[] acs = db.ExecuteQuery(new BranchesQuery())
+            BranchInfo[] acs = db.ExecuteQuery(new BranchesQuery())
                                  .OrderBy(x => x.CreatedAt)
                                  .ToArray();
 

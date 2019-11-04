@@ -12,7 +12,7 @@ namespace AltLib
 
         /// <summary>
         /// Serialized metadata for the branches in this store,
-        /// keyed by <see cref="AltCmdFile.FileName"/>
+        /// keyed by <see cref="BranchInfo.FileName"/>
         /// </summary>
         /// <remarks>The value is held as a string to mimic the data
         /// that would be written to disk as part of a file-based store.
@@ -24,7 +24,7 @@ namespace AltLib
         /// </summary>
         /// <remarks>The key is the path for a file that is imagined
         /// to be present on a fake "m:" drive. This path corresponds
-        /// to the value of <see cref="AltCmdFile.FileName"/>. Thus,
+        /// to the value of <see cref="BranchInfo.FileName"/>. Thus,
         /// if the store is called "MyStore", the key for the command
         /// that created the store (command 0) will be "m:\MyStore\0.json".
         /// <para/>
@@ -43,7 +43,7 @@ namespace AltLib
             // Create the AC file that represents the store root branch
             Guid storeId = args.GetGuid(nameof(ICreateStore.StoreId));
 
-            var ac = new AltCmdFile(storeId: storeId,
+            var ac = new BranchInfo(storeId: storeId,
                                     parentId: Guid.Empty,
                                     branchId: storeId,
                                     createdAt: args.CreatedAt);
@@ -57,9 +57,9 @@ namespace AltLib
         /// Initializes a new instance of the <see cref="MemoryStore"/> class.
         /// </summary>
         /// <param name="rootAc">Metadata for the root branch</param>
-        MemoryStore(AltCmdFile rootAc)
-            : base(new RootFile(rootAc),
-                   new AltCmdFile[] { rootAc },
+        MemoryStore(BranchInfo rootAc)
+            : base(new RootInfo(rootAc),
+                   new BranchInfo[] { rootAc },
                    rootAc.BranchId)
         {
             AcFiles = new Dictionary<string, string>();
@@ -120,7 +120,7 @@ namespace AltLib
         /// Saves the supplied branch metadata as part of this store.
         /// </summary>
         /// <param name="ac">The metadata to be saved</param>
-        public override void Save(AltCmdFile ac)
+        public override void Save(BranchInfo ac)
         {
             if (ac.FileName == null)
                 throw new ArgumentNullException("Cannot save AC file because name is undefined");

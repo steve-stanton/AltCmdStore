@@ -1,21 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using Newtonsoft.Json;
 
 namespace AltLib
 {
     /// <summary>
-    /// The content of the file in the root folder of a command store
-    /// (holding the ID of the store among other things).
+    /// Metadata relating to a command store.
     /// </summary>
-    public class RootFile
+    public class RootInfo
     {
-        /// <summary>
-        /// The name of the file that holds the ID of the command store.
-        /// </summary>
-        public const string Name = ".root";
-
         /// <summary>
         /// The path of the folder that contains the root file.
         /// </summary>
@@ -58,7 +51,7 @@ namespace AltLib
         public Dictionary<string, DateTime> PushTimes { get; }
 
         /// <summary>
-        /// Creates a new instance of <see cref="RootFile"/>
+        /// Creates a new instance of <see cref="RootInfo"/>
         /// </summary>
         /// <param name="storeId">The ID of a command store.</param>
         /// <param name="upstreamId">The ID of the upstream store.</param>
@@ -68,7 +61,7 @@ namespace AltLib
         /// <param name="pushTimes">The locations of all versions of the upstream that
         /// the clone has pushed to (along with the time of the last push).</param>
         [JsonConstructor]
-        internal RootFile(Guid storeId,
+        internal RootInfo(Guid storeId,
                           Guid upstreamId,
                           string upstreamLocation = null,
                           Dictionary<string, DateTime> pushTimes = null)
@@ -80,11 +73,11 @@ namespace AltLib
         }
 
         /// <summary>
-        /// Creates a new instance of <see cref="RootFile"/> for
+        /// Creates a new instance of <see cref="RootInfo"/> for
         /// a brand new command store.
         /// </summary>
         /// <param name="ac">The branch metadata for the root branch</param>
-        internal RootFile(AltCmdFile ac)
+        internal RootInfo(BranchInfo ac)
             : this(ac.StoreId, Guid.Empty)
         {
             DirectoryName = ac.DirectoryName;

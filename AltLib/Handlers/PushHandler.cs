@@ -37,7 +37,7 @@ namespace AltLib
         public void Process(ExecutionContext context)
         {
             CmdStore cs = context.Store;
-            RootFile root = cs.Root;
+            RootInfo root = cs.Root;
             string upLoc = root.UpstreamLocation;
             if (String.IsNullOrEmpty(upLoc))
                 throw new ApplicationException("There is no upstream location");

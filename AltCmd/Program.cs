@@ -123,7 +123,7 @@ namespace AltCmd
                 curDir = args[0];
 
             if (curDir != null)
-                acSpec = AltCmdFile.GetAcPath(curDir);
+                acSpec = BranchInfo.GetAcPath(curDir);
 
             // If we couldn't determine an initial branch based
             // on folder, see if we've been supplied with an AC file

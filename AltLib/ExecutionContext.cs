@@ -82,7 +82,7 @@ namespace AltLib
         /// </remarks>
         public CmdData CreateCmdData(string commandName)
         {
-            AltCmdFile ac = Store.Current.Info;
+            BranchInfo ac = Store.Current.Info;
 
             // Never return command data for a completed branch
             if (ac.IsCompleted)
@@ -203,7 +203,7 @@ namespace AltLib
         /// </remarks>
         public IRemoteStore GetRemoteStore(string storeUrl)
         {
-            string acPath = AltCmdFile.GetAcPath(storeUrl);
+            string acPath = BranchInfo.GetAcPath(storeUrl);
 
             if (acPath == null)
                 throw new ApplicationException("Cannot locate " + storeUrl);

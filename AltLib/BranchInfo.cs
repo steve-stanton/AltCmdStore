@@ -6,26 +6,30 @@ using Newtonsoft.Json;
 namespace AltLib
 {
     /// <summary>
-    /// The content of an AltCmd "AC" file.
+    /// Metadata relating to a branch.
     /// </summary>
     /// <remarks>
-    /// An AC file contains a collection of metadata for a branch.
-    /// Unlike command data, the content of an AC file is mutable,
+    /// When dealing with an instance of <see cref="FileStore"/>, the
+    /// branch metadata gets written to a file with the ".ac" file type.
+    /// For instances of <see cref="SQLiteStore"/>, branch metadata is
+    /// held as a row in the <c>Branches</c> table.
+    /// <para/>
+    /// Unlike command data, branch metadata is mutable,
     /// and will be updated and rewritten each time a command is
     /// appended to the branch.
     /// <para/>
-    /// The AC file does not contain a user-perceived branch name.
-    /// The branch name is obtained from the name of the folder that
-    /// contains the AC file. When you create a brand new store,
-    /// the root directory for the store itself is regarded as the
-    /// "master" branch. As such, the user-perceived name of the
-    /// initial branch will match the name of the store.
+    /// For file stores, the AC file does not contain the user-perceived
+    /// branch name. Instead, the branch name is obtained from the name of
+    /// the folder that contains the AC file. When you create a brand new file store,
+    /// the root directory for the store itself is regarded as the "master" branch.
+    /// As such, the user-perceived name of the initial branch will match the name
+    /// of the store.
     /// <para/>
     /// The user is at liberty to rename the root directory for
-    /// a command store, as well as sub-folders that represent
+    /// a file store, as well as sub-folders that represent
     /// further branches within that store.
     /// </remarks>
-    public class AltCmdFile : IEquatable<AltCmdFile>
+    public class BranchInfo : IEquatable<BranchInfo>
     {
         /// <summary>
         /// The unique ID for the store that contains this branch.
@@ -146,7 +150,7 @@ namespace AltLib
         public string DirectoryName => Path.GetDirectoryName(FileName);
 
         /// <summary>
-        /// Creates a new instance of <see cref="AltCmdFile"/>
+        /// Creates a new instance of <see cref="BranchInfo"/>
         /// </summary>
         /// <param name="storeId">The unique ID for the store that contains this branch.</param>
         /// <param name="parentId">The ID of the parent branch (or <see cref="Guid.Empty"/> if
@@ -167,7 +171,7 @@ namespace AltLib
         /// keyed by the branch ID.</param>
         /// <param name="isCompleted">Has the branch been tagged as completed?</param>
         [JsonConstructor]
-        internal AltCmdFile(Guid storeId,
+        internal BranchInfo(Guid storeId,
                             Guid parentId,
                             Guid branchId,
                             DateTime createdAt,
@@ -241,7 +245,7 @@ namespace AltLib
                 return null;
         }
 
-        public bool Equals(AltCmdFile that)
+        public bool Equals(BranchInfo that)
         {
             return this.BranchId.Equals(that?.BranchId);
         }
@@ -251,9 +255,9 @@ namespace AltLib
             return BranchId.GetHashCode();
         }
 
-        public AltCmdFile CreateCopy()
+        public BranchInfo CreateCopy()
         {
-            return (AltCmdFile)MemberwiseClone();
+            return (BranchInfo)MemberwiseClone();
         }
     }
 }

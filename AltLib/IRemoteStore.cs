@@ -15,7 +15,7 @@ namespace AltLib
         /// </summary>
         /// <param name="branchId">The ID of the branch to retrieve.</param>
         /// <returns>Metadata for the branch.</returns>
-        AltCmdFile GetBranchInfo(Guid branchId);
+        BranchInfo GetBranchInfo(Guid branchId);
 
         /// <summary>
         /// Obtains a collection of all branches known to the supplier.
@@ -23,7 +23,7 @@ namespace AltLib
         /// <returns>The branches known to the supply
         /// (the order you get items back is not specified, it could be
         /// entirely random).</returns>
-        IEnumerable<AltCmdFile> GetBranches();
+        IEnumerable<BranchInfo> GetBranches();
 
         /// <summary>
         /// Obtains the command data for a branch.
@@ -55,6 +55,6 @@ namespace AltLib
         /// the source of the data.</param>
         /// <param name="ac">The metadata for the branch the commands are part of.</param>
         /// <param name="data">The command data to be appended to the remote branch.</param>
-        void Push(string source, AltCmdFile ac, CmdData[] data);
+        void Push(string source, BranchInfo ac, CmdData[] data);
     }
 }

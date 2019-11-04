@@ -56,7 +56,7 @@ namespace AltLib
             if (!cs.IsValidBranchName(name))
                 throw new ArgumentException($"Branch name '{name}' is not allowed");
 
-            var ac = new AltCmdFile(
+            var ac = new BranchInfo(
                         storeId: cs.Id,
                         parentId: parent.Id,
                         branchId: Guid.NewGuid(),
