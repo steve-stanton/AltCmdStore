@@ -40,6 +40,33 @@ namespace AltCmdTests
             }
         }
 
+        [TestMethod]
+        public void InitSQLiteStore()
+        {
+            // Create it in a folder that doesn't already exist
+            string storeName = nameof(InitSQLiteStore);
+            string folder = Path.Combine(Path.GetTempPath(), DateTime.UtcNow.ToString("yyyyMMddHHmmss"));
+            string dbSpec = Path.Combine(folder, storeName);
+
+            try
+            {
+                CmdStore cs = Init(dbSpec, StoreType.SQLite);
+                SQLiteStore ss = (cs as SQLiteStore);
+
+                Assert.IsNotNull(ss);
+                Assert.IsTrue(Directory.Exists(folder));
+                Assert.IsTrue(File.Exists(dbSpec + ".ac-sqlite"));
+                Assert.AreEqual<int>(Directory.GetFiles(folder).Length, 1);
+                Assert.AreEqual<string>(storeName, cs.Name);
+                Assert.AreEqual<string>(dbSpec, cs.Root.DirectoryName);
+            }
+
+            finally
+            {
+                Directory.Delete(folder, true);
+            }
+        }
+
         CmdStore Init(string storeName, StoreType t)
         {
             CmdStore result = CmdStore.Create(storeName, t);

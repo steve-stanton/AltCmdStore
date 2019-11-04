@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Data;
 using System.Data.SQLite;
+using System.Diagnostics;
+using NLog;
 
 namespace AltLib
 {
@@ -18,6 +20,18 @@ namespace AltLib
     /// </remarks>
     class SQLiteCommandFactory : IDbCommandFactory
     {
+        static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
+        /// <summary>
+        /// Global instance counter (for use in debugging)
+        /// </summary>
+        static uint InstanceCount = 0;
+
+        /// <summary>
+        /// An ID for this instance (for use in debugging)
+        /// </summary>
+        uint InstanceId { get; }
+
         /// <summary>
         /// The database connection
         /// </summary>
@@ -35,21 +49,28 @@ namespace AltLib
         /// <param name="isDisposable">Should the connection be disposed of by the
         /// <see cref="Dispose"/> method? Specify <c>false</c> if the connection is being
         /// used by an enclosing transaction.</param>
-        /// <exception cref="ArgumentNullException">If a null data server or null connection was supplied</exception>
+        /// <exception cref="ArgumentNullException">An undefined connection was supplied</exception>
         internal SQLiteCommandFactory(SQLiteConnection c, bool isDisposable)
         {
+            InstanceId = ++InstanceCount;
             Connection = c ?? throw new ArgumentNullException();
             IsDisposable = isDisposable;
+            //Log.Trace($"Created connection {InstanceId} Transaction={!IsDisposable}");
         }
 
         /// <summary>
         /// Disposes of the connection, so long as it was tagged as disposable when this
         /// wrapper was instantiated.
         /// </summary>
+        /// <remarks>If a transaction has been started, you must explicitly call
+        /// <see cref="Complete"/> to dispose of the connection.</remarks>
         public void Dispose()
         {
             if (IsDisposable)
+            {
                 Connection.Dispose();
+                //Log.Trace($"Connection {InstanceId} disposed");
+            }
         }
 
         /// <summary>
@@ -60,7 +81,24 @@ namespace AltLib
         /// with the database connection.</returns>
         IDbCommand IDbCommandFactory.GetCommand(string sql)
         {
+            if (Connection.State != ConnectionState.Open)
+            {
+                //Log.Trace($"Opening connection {InstanceId}");
+                Connection.Open();
+            }
+
+            Log.Trace($"SQL.{InstanceId}: {sql}");
             return new SQLiteCommand(sql, Connection);
+        }
+
+        /// <summary>
+        /// Completes a transaction by disposing of the connection.
+        /// </summary>
+        void IDbCommandFactory.Complete()
+        {
+            Debug.Assert(!IsDisposable);
+            Connection.Dispose();
+            //Log.Trace($"Transaction {InstanceId} completed");
         }
     }
 }

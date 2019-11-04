@@ -14,6 +14,13 @@ namespace AltLib
         /// <param name="sql">The command text to be executed</param>
         /// <returns>A command object that holds the supplied command text, and associated
         /// with the database connection.</returns>
+        /// <remarks>When done with the command object, make sure to dispose of it (otherwise
+        /// the database may remain locked)</remarks>
         IDbCommand GetCommand(string sql);
+
+        /// <summary>
+        /// Completes a transaction.
+        /// </summary>
+        void Complete();
     }
 }

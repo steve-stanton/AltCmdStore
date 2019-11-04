@@ -55,7 +55,6 @@ namespace AltLib
         protected internal override IDbCommandFactory CreateCommandFactory(bool isDisposable)
         {
             var conn = new SQLiteConnection(ConnectionString);
-            conn.Open();
             return new SQLiteCommandFactory(conn, isDisposable);
         }
     }

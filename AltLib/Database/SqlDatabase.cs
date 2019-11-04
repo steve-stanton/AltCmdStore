@@ -74,8 +74,9 @@ namespace AltLib
         internal int ExecuteNonQuery(string sql)
         {
             using (IDbCommandFactory c = GetCommandFactory())
+            using (IDbCommand cmd = c.GetCommand(sql))
             {
-                return c.GetCommand(sql).ExecuteNonQuery();
+                return cmd.ExecuteNonQuery();
             }
         }
 
@@ -93,8 +94,9 @@ namespace AltLib
         internal T ExecuteSelect<T>(string sql, T defaultValue = default(T)) where T : IConvertible
         {
             using (IDbCommandFactory c = GetCommandFactory())
+            using (IDbCommand cmd = c.GetCommand(sql))
             {
-                object o = c.GetCommand(sql).ExecuteScalar();
+                object o = cmd.ExecuteScalar();
 
                 if (o == null || o == DBNull.Value)
                     return defaultValue;
@@ -113,13 +115,12 @@ namespace AltLib
         internal IEnumerable<T> ExecuteQuery<T>(IDataQuery<T> query)
         {
             using (IDbCommandFactory c = GetCommandFactory())
+            using (IDbCommand cmd = c.GetCommand(query.Text))
+            using (IDataReader reader = cmd.ExecuteReader())
             {
-                using (IDataReader reader = c.GetCommand(query.Text).ExecuteReader())
+                while (reader.Read())
                 {
-                    while (reader.Read())
-                    {
-                        yield return query.CreateInstance(reader);
-                    }
+                    yield return query.CreateInstance(reader);
                 }
             }
         }
@@ -186,7 +187,7 @@ namespace AltLib
             {
                 if (connectionCreated)
                 {
-                    Transaction.Dispose();
+                    Transaction.Complete();
                     Transaction = null;
                 }
             }
@@ -204,18 +205,15 @@ namespace AltLib
             if (String.IsNullOrEmpty(tableName))
                 throw new ArgumentNullException();
 
-            using (IDbCommandFactory c = GetCommandFactory())
-            {
-                string sql = $"SELECT 1 FROM [{tableName}]";
+            string sql = $"SELECT 1 FROM [{tableName}]";
 
-                if (!String.IsNullOrEmpty(whereClause))
-                    sql += $" WHERE {whereClause}";
+            if (!String.IsNullOrEmpty(whereClause))
+                sql += $" WHERE {whereClause}";
 
-                if (ExecuteSelect<int>($"SELECT EXISTS ({sql})") == 0)
-                    return false;
-                else
-                    return true;
-            }
+            if (ExecuteSelect<int>($"SELECT EXISTS ({sql})") == 0)
+                return false;
+            else
+                return true;
         }
     }
 }

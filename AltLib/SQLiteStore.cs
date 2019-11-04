@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Linq;
-using System.Data.SQLite;
-using System.Data.SQLite.Linq;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -45,6 +42,14 @@ namespace AltLib
             if (!IsLocalDrive(fullSpec))
                 throw new ApplicationException("Command stores can only be initialized on a local fixed drive");
 
+            // Ensure the folder exists
+            string folderName = Path.GetDirectoryName(fullSpec);
+            if (!Directory.Exists(folderName))
+            {
+                Log.Trace("Creating " + folderName);
+                Directory.CreateDirectory(folderName);
+            }
+
             Guid storeId = args.GetGuid(nameof(ICreateStore.StoreId));
             SQLiteStore result = null;
 
@@ -71,11 +76,11 @@ namespace AltLib
                     createdAt: args.CreatedAt);
 
                 // Fake a file name
-                string folderName = Path.GetDirectoryName(fullSpec);
                 ac.FileName = Path.Combine(folderName, name, $"{storeId}.ac");
 
                 // Create a new root
                 var root = new RootFile(storeId, Guid.Empty);
+                root.DirectoryName = Path.Combine(folderName, name);
 
                 // Create the store and save it
                 result = new SQLiteStore(
@@ -207,23 +212,26 @@ namespace AltLib
         /// </summary>
         public override void SaveRoot()
         {
-            SaveProperty(PropertyNaming.StoreId, Root.StoreId.ToString());
+            Database.ExecuteTransaction(() =>
+            {
+                SaveProperty(PropertyNaming.StoreId, Root.StoreId.ToString());
 
-            if (Root.UpstreamId.Equals(Guid.Empty))
-            {
-                Debug.Assert(String.IsNullOrEmpty(Root.UpstreamLocation));
-            }
-            else
-            {
-                SaveProperty(PropertyNaming.UpstreamId, Root.UpstreamId.ToString());
-                SaveProperty(PropertyNaming.UpstreamLocation, Root.UpstreamLocation);
-            }
+                if (Root.UpstreamId.Equals(Guid.Empty))
+                {
+                    Debug.Assert(String.IsNullOrEmpty(Root.UpstreamLocation));
+                }
+                else
+                {
+                    SaveProperty(PropertyNaming.UpstreamId, Root.UpstreamId.ToString());
+                    SaveProperty(PropertyNaming.UpstreamLocation, Root.UpstreamLocation);
+                }
 
-            if (Root.PushTimes != null)
-            {
-                // To store as json 
-                throw new NotImplementedException();
-            }
+                if (Root.PushTimes != null)
+                {
+                    // To store as json 
+                    throw new NotImplementedException();
+                }
+            });
         }
 
         /// <summary>
@@ -316,6 +324,7 @@ namespace AltLib
             Dictionary<string,object> props = db.ExecuteQuery(new PropertiesQuery())
                                                 .ToDictionary(x => x.Key, x => (object)x.Value);
 
+            // Amend root details if we're loading up a new clone
             if (cs != null)
             {
                 Guid upstreamId = props.GetGuid(PropertyNaming.StoreId.ToString());
