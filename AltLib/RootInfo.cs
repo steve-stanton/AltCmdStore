@@ -10,15 +10,14 @@ namespace AltLib
     public class RootInfo
     {
         /// <summary>
-        /// The path of the folder that contains the root file.
-        /// </summary>
-        [JsonIgnore]
-        public string DirectoryName { get; internal set; }
-
-        /// <summary>
         /// The ID of the command store.
         /// </summary>
         public Guid StoreId { get; }
+
+        /// <summary>
+        /// The user-perceived name of the store.
+        /// </summary>
+        public string Name { get; }
 
         /// <summary>
         /// The ID of the upstream store (or <see cref="Guid.Empty"/> if
@@ -54,6 +53,7 @@ namespace AltLib
         /// Creates a new instance of <see cref="RootInfo"/>
         /// </summary>
         /// <param name="storeId">The ID of a command store.</param>
+        /// <param name="name">The user-perceived name of the store.</param>
         /// <param name="upstreamId">The ID of the upstream store.</param>
         /// <param name="upstreamLocation">The location of the upstream store (if any) that should be used
         /// as the default when pushing and fetching. For stores on the local file system,
@@ -62,11 +62,13 @@ namespace AltLib
         /// the clone has pushed to (along with the time of the last push).</param>
         [JsonConstructor]
         internal RootInfo(Guid storeId,
+                          string name,
                           Guid upstreamId,
                           string upstreamLocation = null,
                           Dictionary<string, DateTime> pushTimes = null)
         {
             StoreId = storeId;
+            Name = name;
             UpstreamId = upstreamId;
             UpstreamLocation = upstreamLocation;
             PushTimes = pushTimes;
@@ -78,9 +80,8 @@ namespace AltLib
         /// </summary>
         /// <param name="ac">The branch metadata for the root branch</param>
         internal RootInfo(BranchInfo ac)
-            : this(ac.StoreId, Guid.Empty)
+            : this(ac.StoreId, ac.BranchName, Guid.Empty)
         {
-            DirectoryName = ac.DirectoryName;
         }
     }
 }

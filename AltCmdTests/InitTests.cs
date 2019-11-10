@@ -25,13 +25,15 @@ namespace AltCmdTests
             try
             {
                 CmdStore cs = Init(folder, StoreType.File);
+                var fs = (cs as FileStore);
 
+                Assert.IsNotNull(fs);
                 Assert.IsTrue(Directory.Exists(folder));
                 Assert.IsTrue(File.Exists(Path.Combine(folder, "0.json")));
                 Assert.IsTrue(File.Exists(Path.Combine(folder, ".root")));
                 Assert.AreEqual<int>(Directory.GetFiles(folder).Length, 3);
                 Assert.AreEqual<string>(storeName, cs.Name);
-                Assert.AreEqual<string>(folder, cs.Root.DirectoryName);
+                Assert.AreEqual<string>(folder, fs.RootDirectoryName);
             }
 
             finally
@@ -46,7 +48,7 @@ namespace AltCmdTests
             // Create it in a folder that doesn't already exist
             string storeName = nameof(InitSQLiteStore);
             string folder = Path.Combine(Path.GetTempPath(), DateTime.UtcNow.ToString("yyyyMMddHHmmss"));
-            string dbSpec = Path.Combine(folder, storeName);
+            string dbSpec = Path.Combine(folder, storeName + ".ac-sqlite");
 
             try
             {
@@ -55,10 +57,10 @@ namespace AltCmdTests
 
                 Assert.IsNotNull(ss);
                 Assert.IsTrue(Directory.Exists(folder));
-                Assert.IsTrue(File.Exists(dbSpec + ".ac-sqlite"));
+                Assert.IsTrue(File.Exists(dbSpec));
                 Assert.AreEqual<int>(Directory.GetFiles(folder).Length, 1);
                 Assert.AreEqual<string>(storeName, cs.Name);
-                Assert.AreEqual<string>(dbSpec, cs.Root.DirectoryName);
+                Assert.AreEqual<string>(dbSpec, ss.FileName);
             }
 
             finally

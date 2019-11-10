@@ -73,24 +73,21 @@ namespace AltLib
                 var ac = new BranchInfo(storeId: storeId,
                     parentId: Guid.Empty,
                     branchId: storeId,
+                    branchName: name,
                     createdAt: args.CreatedAt);
 
-                // Fake a file name
-                ac.FileName = Path.Combine(folderName, name, $"{storeId}.ac");
-
                 // Create a new root
-                var root = new RootInfo(storeId, Guid.Empty);
-                root.DirectoryName = Path.Combine(folderName, name);
+                var root = new RootInfo(storeId, name, Guid.Empty);
 
                 // Create the store and save it
                 result = new SQLiteStore(
-                                root,
-                                new BranchInfo[] { ac },
-                                ac.BranchId, 
-                                db);
+                    root,
+                    new BranchInfo[] {ac},
+                    ac.BranchId,
+                    db);
 
                 // Save the info for the master branch plus the root metadata
-                result.Save(ac);
+                result.SaveBranchInfo(ac);
                 result.SaveRoot();
 
                 // The last branch is the root of the new database
@@ -102,6 +99,8 @@ namespace AltLib
 
         SQLiteDatabase Database { get; }
 
+        public string FileName => Database.FileName;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="SQLiteStore"/> class.
         /// </summary>
@@ -110,10 +109,10 @@ namespace AltLib
         /// <param name="currentId">The ID of the currently checked out branch</param>
         /// <param name="db">The database that holds the store content</param>
         internal SQLiteStore(RootInfo rootInfo,
-                             BranchInfo[] branches,
-                             Guid currentId,
-                             SQLiteDatabase db)
-            : base(rootInfo, branches, currentId)
+            BranchInfo[] branches,
+            Guid currentId,
+            SQLiteDatabase db)
+            : base(db.FileName, rootInfo, branches, currentId)
         {
             Database = db;
         }
@@ -135,15 +134,16 @@ namespace AltLib
         }
 
         /// <summary>
-        /// Saves the supplied branch metadata as part of this store.
+        /// Saves the metadata for a branch that is part of this store.
         /// </summary>
-        /// <param name="ac">The metadata to be saved</param>
-        /// <exception cref="ArgumentNullException">Cannot save because name is undefined</exception>
-        public override void Save(BranchInfo ac)
+        /// <param name="branch">The branch to be saved.</param>
+        public override void SaveBranchInfo(Branch branch)
         {
-            if (ac.FileName == null)
-                throw new ArgumentNullException("Cannot save because name is undefined");
+            SaveBranchInfo(branch.Info);
+        }
 
+        void SaveBranchInfo(BranchInfo ac)
+        {
             string data = JsonConvert.SerializeObject(ac, Formatting.Indented);
             string sql;
             int nRows = 0;
@@ -167,15 +167,14 @@ namespace AltLib
 
                     // Record branch metadata
                     sql = $"INSERT INTO Branches (Id,Name,CreatedAt,Data) VALUES " +
-                          $"('{ac.BranchId}', '{ac.BranchName}', '{ac.CreatedAt:o}', '{data}')";
+                          $"('{ac.BranchId}', '{viewName}', '{ac.CreatedAt:o}', '{data}')";
 
                     nRows = Database.ExecuteNonQuery(sql);
                 });
             }
             else
             {
-                sql = $"UPDATE Branches SET Name='{ac.BranchName}', Data='{data}' " +
-                      $"WHERE Id='{ac.BranchId}'";
+                sql = $"UPDATE Branches SET Data='{data}' WHERE Id='{ac.BranchId}'";
                 nRows = Database.ExecuteNonQuery(sql);
             }
 
@@ -193,18 +192,18 @@ namespace AltLib
             // When dealing with a branch new store, the new branch is already
             // recorded. But for subsequent branch creation, the new branch only
             // gets added after the fact.
-
+            /*
             if (Branches.Count == 1)
                 return branchName;
-
+                */
             // The new branch should already be in the Branches dictionary
             int numBranch = Branches.Values
-                                    .Count(x => x.Info.BranchName.EqualsIgnoreCase(branchName));
+                                    .Count(x => x.Name.EqualsIgnoreCase(branchName));
 
-            if (numBranch == 0)
+            if (numBranch == 1)
                 return branchName;
             else
-                return $"{branchName}({numBranch + 1})";
+                return $"{branchName}({numBranch})";
         }
 
         /// <summary>
@@ -335,13 +334,14 @@ namespace AltLib
 
             var root = new RootInfo(
                 storeId: props.GetGuid(PropertyNaming.StoreId.ToString()),
+                name: Path.GetFileNameWithoutExtension(sqliteFilename),
                 upstreamId: props.GetGuid(PropertyNaming.UpstreamId.ToString()),
                 upstreamLocation: props.GetValue<string>(PropertyNaming.UpstreamLocation.ToString()),
                 pushTimes: null);
 
             // Fake a directory name that will provide a value for CmdStore.Name that
             // corresponds to the name of the database
-            root.DirectoryName = Path.ChangeExtension(sqliteFilename, null);
+            string rootDirectoryName = Path.ChangeExtension(sqliteFilename, null);
 
             // What was the last branch the user was working with? (it should be defined,
             // go with the master branch if not)
@@ -363,23 +363,6 @@ namespace AltLib
             // them back to the database
             if (cs != null)
                 result.SaveRoot();
-            
-            // At this stage, the FileName property held in branch metadata (as returned
-            // by BranchesQuery) is simply the name. To ensure things mimic the logic in
-            // FileStore, we need to define a fake FileName property that reflects the
-            // branch hierarchy
-            var branchNames = acs.ToDictionary(x => x.BranchId, x => x.FileName);
-
-            foreach (Branch branch in result.Branches.Values)
-            {
-                var names = new List<string> {root.DirectoryName};
-
-                for (var b = branch; b != null; b = b.Parent)
-                    names.Add(branchNames[b.Id]);
-
-                branch.Info.FileName = String.Join(@"\", names);
-                //Log.Info(branch.Info.FileName);
-            }
 
             return result;
         }
@@ -413,6 +396,14 @@ namespace AltLib
         {
             return name.EqualsIgnoreCase(BranchesTableName) ||
                    name.EqualsIgnoreCase(PropertiesTableName);
+        }
+
+        /// <summary>
+        /// Remembers <see cref="Current"/> as the most recently loaded branch.
+        /// </summary>
+        public override void SaveCurrent()
+        {
+            SaveProperty(PropertyNaming.LastBranch, Current.Id.ToString());
         }
     }
 }

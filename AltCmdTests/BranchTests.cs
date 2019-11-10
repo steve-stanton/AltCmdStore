@@ -26,7 +26,7 @@ namespace AltCmdTests
             Branch b = s.Current;
 
             Assert.AreEqual<int>(b.Commands.Count, 3);
-            Assert.AreEqual<string>(b.Info.BranchName, "a");
+            Assert.AreEqual<string>(b.Name, "a");
             Assert.AreEqual<uint>(b.Info.CommandCount, 3);
 
             // The ICreateBranch is the one and only command

@@ -60,24 +60,22 @@ namespace AltLib
                         storeId: cs.Id,
                         parentId: parent.Id,
                         branchId: Guid.NewGuid(),
+                        branchName: name,
                         createdAt: Input.CreatedAt,
                         updatedAt: Input.CreatedAt,
                         commandDiscount: 1,
                         refreshCount: numCmd);
 
-            // Save the AC file in the store
-            string parentPath = Path.GetDirectoryName(parent.Info.FileName);
-            string newPath = Path.Combine(parentPath, name);
-            ac.FileName = Path.Combine(newPath, ac.BranchId + ".ac");
-            cs.Save(ac);
-
-            var newBranch = new Branch(cs, ac);
-            newBranch.SaveData(Input);
-
             // Update internal structure to include the new branch
-            newBranch.Parent = parent;
+            var newBranch = new Branch(cs, ac) { Parent = parent };
             parent.Children.Add(newBranch);
             cs.Branches.Add(ac.BranchId, newBranch);
+
+            // Save the metadata for the new branch
+            cs.SaveBranchInfo(newBranch);
+
+            // And save the CreateBranch command itself
+            newBranch.SaveData(Input);
         }
     }
 }

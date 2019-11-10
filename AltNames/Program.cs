@@ -90,7 +90,7 @@ namespace AltNames
             {
                 // If nothing was specified, look in the current folder
                 string curDir = Directory.GetCurrentDirectory();
-                acSpec = BranchInfo.GetAcPath(curDir);
+                acSpec = FileStore.GetAcFilePath(curDir);
 
                 // If nothing in current folder, check last used branch
                 if (acSpec == null)
@@ -116,7 +116,7 @@ namespace AltNames
                 }
                 else if (Directory.Exists(branchRef))
                 {
-                    acSpec = BranchInfo.GetAcPath(branchRef);
+                    acSpec = FileStore.GetAcFilePath(branchRef);
                     if (acSpec == null)
                         throw new ArgumentException("Specified folder does not contain any command data");
                 }
@@ -128,7 +128,7 @@ namespace AltNames
 
             // Load branch metadata for the store
             var cs = FileStore.Load(acSpec);
-            Log.Info($"Opened {cs.Name} (current branch is {cs.Current.Info.BranchName})");
+            Log.Info($"Opened {cs.Name} (current branch is {cs.Current.Name})");
 
             // Remember the store we opened as the last one
             cs.SaveCurrent();

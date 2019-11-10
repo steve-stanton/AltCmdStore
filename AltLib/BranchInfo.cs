@@ -56,6 +56,11 @@ namespace AltLib
         public Guid BranchId { get; }
 
         /// <summary>
+        /// The user-perceived name of the branch.
+        /// </summary>
+        public string BranchName { get; }
+
+        /// <summary>
         /// The time (UTC) when the branch was originally created.
         /// </summary>
         /// <remarks>
@@ -137,25 +142,13 @@ namespace AltLib
         public bool IsCompleted { get; internal set; }
 
         /// <summary>
-        /// The AC file name (including the full path).
-        /// </summary>
-        [JsonIgnore]
-        public string FileName { get; internal set; }
-
-        /// <summary>
-        /// The directory name for <see cref="FileName"/> (or null if
-        /// that is not defined).
-        /// </summary>
-        [JsonIgnore]
-        public string DirectoryName => Path.GetDirectoryName(FileName);
-
-        /// <summary>
         /// Creates a new instance of <see cref="BranchInfo"/>
         /// </summary>
         /// <param name="storeId">The unique ID for the store that contains this branch.</param>
         /// <param name="parentId">The ID of the parent branch (or <see cref="Guid.Empty"/> if
         /// there is no parent).</param>
         /// <param name="branchId">The unique ID for the branch.</param>
+        /// <param name="branchName">The user-perceived name of the branch.</param>
         /// <param name="createdAt">The time (UTC) when the branch was originally created.</param>
         /// <param name="updatedAt">The time (UTC) when a command was last appended to the branch.</param>
         /// <param name="commandCount">The number of commands that have been appended to the branch.</param>
@@ -174,6 +167,7 @@ namespace AltLib
         internal BranchInfo(Guid storeId,
                             Guid parentId,
                             Guid branchId,
+                            string branchName,
                             DateTime createdAt,
                             DateTime? updatedAt = null,
                             uint commandCount = 0,
@@ -187,8 +181,9 @@ namespace AltLib
             StoreId = storeId;
             ParentId = parentId;
             BranchId = branchId;
+            BranchName = branchName;
             CreatedAt = createdAt;
-            UpdatedAt = updatedAt.HasValue ? updatedAt.Value : createdAt;
+            UpdatedAt = updatedAt ?? createdAt;
             CommandCount = commandCount;
             CommandDiscount = commandDiscount;
             RefreshCount = refreshCount;
@@ -198,51 +193,9 @@ namespace AltLib
             IsCompleted = isCompleted;
         }
 
-        /// <summary>
-        /// The name of the folder that contains the AC file.
-        /// </summary>
-        /// <remarks>
-        /// For a <see cref="FileName"/> of
-        /// "C:\MyStores\Project123\MyBranch\42.ac",
-        /// you get "MyBranch".
-        /// </remarks>
-        [JsonIgnore]
-        public string BranchName
-        {
-            get
-            {
-                if (FileName == null)
-                    return String.Empty;
-
-                string dirName = Path.GetDirectoryName(FileName);
-                var dirInfo = new DirectoryInfo(dirName);
-
-                return dirInfo.Name;
-            }
-        }
-
         public override string ToString()
         {
             return $"{BranchName}[{CommandCount}]";
-        }
-
-
-        /// <summary>
-        /// Attempts to locate a single AC file in a specific folder.
-        /// </summary>
-        /// <param name="folderName">The folder to check.</param>
-        /// <returns>The path for a single AC file present in the specified folder</returns>
-        /// <exception cref="ApplicationException">The specified folder contains more than one AC file</exception>
-        public static string GetAcPath(string folderName)
-        {
-            string[] acFiles = Directory.GetFiles(folderName, "*.ac", SearchOption.TopDirectoryOnly);
-            if (acFiles.Length > 1)
-                throw new ApplicationException("Unexpected number of AC files in " + folderName);
-
-            if (acFiles.Length == 1)
-                return acFiles[0];
-            else
-                return null;
         }
 
         public bool Equals(BranchInfo that)

@@ -44,6 +44,11 @@ namespace AltLib
         public Guid Id => Info.BranchId;
 
         /// <summary>
+        /// The user-perceived name of the branch.
+        /// </summary>
+        public string Name => Info.BranchName;
+
+        /// <summary>
         /// Creates a new instance of <see cref="Branch"/> (but does
         /// not load it).
         /// </summary>
@@ -151,7 +156,7 @@ namespace AltLib
         /// if not found).</returns>
         public Branch GetChild(string name)
         {
-            return Children.FirstOrDefault(x => x.Info.BranchName.EqualsIgnoreCase(name));
+            return Children.FirstOrDefault(x => x.Name.EqualsIgnoreCase(name));
         }
 
         /// <summary>
@@ -220,12 +225,12 @@ namespace AltLib
         }
 
         /// <summary>
-        /// The path for the folder that contains the AC file,
-        /// relative to the root folder for the store.
+        /// The branch path, relative to the root for the store.
         /// </summary>
         /// <param name="excludeRoot">Should the name of the store
         /// be excluded from the path (by default, the name of
         /// the store will be excluded).</param>
+        /// <param name="delimiter">The string that will precede each branch</param>
         /// <returns>
         /// If the root folder for the store is "C:\MyStores\Project123",
         /// and <see cref="FileName"/> is
@@ -237,7 +242,7 @@ namespace AltLib
         /// <remarks>
         /// Use <see cref="FileName"/> if you want the absolute path.
         /// </remarks>
-        public string GetBranchPath(bool excludeRoot = true)
+        public string GetBranchPath(bool excludeRoot = true, string delimiter = "/")
         {
             var names = new List<string>();
 
@@ -246,11 +251,11 @@ namespace AltLib
                 if (b.Parent == null)
                 {
                     if (!excludeRoot)
-                        names.Add(b.Info.BranchName);
+                        names.Add(b.Name);
                 }
                 else
                 {
-                    names.Add(b.Info.BranchName);
+                    names.Add(b.Name);
                 }
             }
 
@@ -260,12 +265,12 @@ namespace AltLib
             if (Info.IsCompleted)
                 names.Add(".");
 
-            string result = String.Join("/", names);
+            string result = String.Join(delimiter, names);
 
             if (excludeRoot)
                 return result;
             else
-                return "/" + result;
+                return delimiter + result;
         }
 
         /// <summary>
@@ -372,7 +377,7 @@ namespace AltLib
             }
 
             // Save the mutated branch metadata
-            Store.Save(Info);
+            Store.SaveBranchInfo(this);
         }
 
         /// <summary>

@@ -72,7 +72,7 @@ namespace AltLib
 
                 // Remember how much we were ahead at the time of the push
                 b.Info.LastPush = idr.Max + 1;
-                b.Store.Save(b.Info);
+                b.Store.SaveBranchInfo(b);
             }
 
             Log.Info("Push completed");

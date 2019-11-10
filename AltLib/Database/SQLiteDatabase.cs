@@ -9,6 +9,11 @@ namespace AltLib
     class SQLiteDatabase : SqlDatabase
     {
         /// <summary>
+        /// The file specification for the SQLite database file.
+        /// </summary>
+        internal string FileName { get; }
+
+        /// <summary>
         /// Generates the connection string for working with a SQLite database
         /// </summary>
         /// <param name="sqliteFileName">The file specification for the SQLite database file.</param>
@@ -39,6 +44,7 @@ namespace AltLib
         internal SQLiteDatabase(string sqliteFileName, bool readOnly = false)
             : base(GetConnectionString(sqliteFileName, readOnly))
         {
+            FileName = sqliteFileName;
         }
 
         /// <summary>

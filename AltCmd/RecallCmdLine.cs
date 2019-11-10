@@ -85,8 +85,8 @@ namespace AltCmd
                 string name = (data as ICreateBranch).Name;
                 uint cc = (data as ICreateBranch).CommandCount;
                 string result = $"branch {name} {cc}";
-                if (!name.Equals(branch.Info.BranchName))
-                    result += $" (now called {branch.Info.BranchName})";
+                if (!name.Equals(branch.Name))
+                    result += $" (now called {branch.Name})";
 
                 return result;
             }
@@ -100,7 +100,7 @@ namespace AltCmd
                 if (ReferenceEquals(fromBranch, branch.Parent))
                     result += "..";
                 else
-                    result += fromBranch.Info.BranchName;
+                    result += fromBranch.Name;
 
                 result += $" [{m.MinCmd},{m.MaxCmd}]";
 

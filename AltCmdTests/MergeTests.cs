@@ -22,7 +22,7 @@ namespace AltCmdTests
             });
 
             Branch branch = s.Current;
-            Assert.AreEqual<string>("B", branch.Info.BranchName);
+            Assert.AreEqual<string>("B", branch.Name);
 
             // The first command in the stream should always be the ICreateStore command
             Cmd first = s.Stream.Cmds.First.Value;
@@ -46,7 +46,7 @@ namespace AltCmdTests
             });
 
             Branch branch = s.Current;
-            Assert.AreEqual<string>("A", branch.Info.BranchName);
+            Assert.AreEqual<string>("A", branch.Name);
 
             // Check the whole stream
             var expect = new string[] { "B1", "B2" };
@@ -67,7 +67,7 @@ namespace AltCmdTests
             });
 
             Branch branch = s.Current;
-            Assert.AreEqual<string>("B", branch.Info.BranchName);
+            Assert.AreEqual<string>("B", branch.Name);
 
             // Check the whole stream
             var expect = new string[] { "A1", "A2" };
@@ -93,7 +93,7 @@ namespace AltCmdTests
             });
 
             Branch b = s.Current;
-            Assert.AreEqual<string>("A", b.Info.BranchName);
+            Assert.AreEqual<string>("A", b.Name);
 
             // The child should come at the end
             var actual = GetNames(s.Stream).ToArray();
@@ -119,7 +119,7 @@ namespace AltCmdTests
             });
 
             Branch a = s.Current;
-            Assert.AreEqual<string>("A", a.Info.BranchName);
+            Assert.AreEqual<string>("A", a.Name);
 
             Branch b = a.GetChild("B");
             Assert.AreEqual<uint>(0, b.AheadCount);
@@ -154,7 +154,7 @@ namespace AltCmdTests
             });
 
             Branch b = s.Current;
-            Assert.AreEqual<string>("B", b.Info.BranchName);
+            Assert.AreEqual<string>("B", b.Name);
             Assert.AreEqual<uint>(2, b.AheadCount); // A doesn't have B3 or B5
             Assert.AreEqual<uint>(1, b.BehindCount); // B doesn't have A6
 

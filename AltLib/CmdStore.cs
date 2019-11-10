@@ -12,6 +12,12 @@ namespace AltLib
         static Logger Log = LogManager.GetCurrentClassLogger();
 
         /// <summary>
+        /// Some sort of identifier relating to the place where the
+        /// store resides (derived classes know what this actually means)
+        /// </summary>
+        protected string Home { get; }
+
+        /// <summary>
         /// Root metadata for the store.
         /// </summary>
         public RootInfo Root { get; }
@@ -24,7 +30,7 @@ namespace AltLib
         /// <summary>
         /// A user-perceived name for this store.
         /// </summary>
-        public string Name { get; }
+        public string Name => Root.Name;
 
         /// <summary>
         /// The local branches known to this store (keyed by the branch ID).
@@ -111,19 +117,23 @@ namespace AltLib
         /// <summary>
         /// Initializes a new instance of the <see cref="CmdStore"/> class.
         /// </summary>
+        /// <param name="home">Some sort of identifier relating to the place where
+        /// the store resides</param>
         /// <param name="rootInfo">Root metadata for this store.</param>
         /// <param name="acInfo">Metadata for the branches in the store</param>
         /// <param name="currentId">The ID of the currently checked out branch</param>
-        protected CmdStore(RootInfo rootInfo,
+        protected CmdStore(string home,
+                           RootInfo rootInfo,
                            BranchInfo[] acInfo,
                            Guid currentId)
         {
             if (acInfo == null || acInfo.Length == 0)
                 throw new ArgumentException(nameof(acInfo));
 
+            Home = home;
+
             // Obtain the store name from the root folder
             Root = rootInfo;
-            Name = Path.GetFileName(Root.DirectoryName);
             Log.Trace($"Initializing store {Id}, Name={Name}");
 
             Branches = acInfo.ToDictionary(x => x.BranchId,
@@ -144,7 +154,7 @@ namespace AltLib
                     // We should have located the parent for all branches
                     // except for the root branch
                     if (!Guid.Empty.Equals(parentId))
-                        throw new ApplicationException($"Could not locate parent for {b.Info.FileName}");
+                        throw new ApplicationException($"Could not locate parent for {b.Info.BranchId}");
                 }
             }
 
@@ -152,48 +162,6 @@ namespace AltLib
                 throw new ApplicationException($"Cannot locate current branch");
 
             Current = current;
-        }
-
-        /// <summary>
-        /// Switches branches to a child of the current branch.
-        /// </summary>
-        /// <param name="branchPath">The path for the branch
-        /// to switch to (not case sensitive)</param>
-        /// <returns>The branch information for the child (null if
-        /// the child was not found)</returns>
-        /// <remarks>
-        /// The value for <paramref name="branchPath"/> works
-        /// like a folder specification, and may be specified
-        /// either in an absolute form (relative to the store
-        /// root), or relative to the current branch.
-        /// <para/>
-        /// A branch path of ".." may be used as a shortcut for
-        /// the parent of the current branch. A branch path of "/"
-        /// may be used as a shortcut for the root branch.
-        /// </remarks>
-        public Branch SwitchTo(string branchPath)
-        {
-            // Treat ".." as a switch to the parent branch
-            // Treat "/" as a switch to the root branch
-
-            Branch result;
-
-            if (branchPath == "..")
-                result = Current.Parent;
-            else if (branchPath == "/")
-                result = Current.GetRoot();
-            else
-            {
-                // Allow for relative specs
-                string relDir = Path.Combine(Current.Info.DirectoryName, branchPath);
-                string toDir = Path.GetFullPath(relDir);
-                result = FindBranchByFolderName(toDir);
-            }
-
-            if (result != null)
-                SwitchTo(result);
-
-            return result;
         }
 
         /// <summary>
@@ -207,16 +175,9 @@ namespace AltLib
         }
 
         /// <summary>
-        /// Attempts to locate the branch that is present in a specific folder.
+        /// Remembers <see cref="Current"/> as the most recently loaded branch.
         /// </summary>
-        /// <param name="folderName">The full path for the folder to look for.</param>
-        /// <returns>The branch metadata relating to the supplied folder (null
-        /// if not found)</returns>
-        Branch FindBranchByFolderName(string folderName)
-        {
-            return Branches.Values.FirstOrDefault(
-                x => x.Info.DirectoryName.EqualsIgnoreCase(folderName));
-        }
+        public abstract void SaveCurrent();
 
         /// <summary>
         /// Reads the command data for a range of commands in a specific branch.
@@ -256,25 +217,10 @@ namespace AltLib
         }
 
         /// <summary>
-        /// Remembers <see cref="Current"/> as the most recently
-        /// loaded branch.
+        /// Saves the metadata for a branch that is part of this store.
         /// </summary>
-        public void SaveCurrent()
-        {
-            // Remember the current branch for the current store
-            // in app data (last branch, regardless of which store)
-            string progData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-            string last = Path.Combine(progData, "AltCmd", "last");
-            File.WriteAllText(last, Current.Info.FileName);
-
-            Log.Trace($"Current branch set to {Current}");
-        }
-
-        /// <summary>
-        /// Saves the supplied branch metadata as part of this store.
-        /// </summary>
-        /// <param name="ac">The metadata to be saved</param>
-        abstract public void Save(BranchInfo ac);
+        /// <param name="branch">The branch to be saved.</param>
+        public abstract void SaveBranchInfo(Branch branch);
 
         /// <summary>
         /// Saves the root metadata as part of this store.

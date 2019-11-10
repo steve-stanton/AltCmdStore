@@ -102,7 +102,7 @@ namespace AltCmd
                 {
                     // Load branch metadata for the store
                     var ss = SQLiteStore.Load(dbFile);
-                    Log.Info($"Opened {ss.Name} (current branch is {ss.Current.Info.BranchName})");
+                    Log.Info($"Opened {ss.Name} (current branch is {ss.Current.Name})");
 
                     // Load up the command stream as well
                     ss.Stream = ss.Current.CreateStream();
@@ -123,7 +123,7 @@ namespace AltCmd
                 curDir = args[0];
 
             if (curDir != null)
-                acSpec = BranchInfo.GetAcPath(curDir);
+                acSpec = FileStore.GetAcFilePath(curDir);
 
             // If we couldn't determine an initial branch based
             // on folder, see if we've been supplied with an AC file
@@ -158,16 +158,16 @@ namespace AltCmd
                 return new ExecutionContext();
 
             // Load branch metadata for the store
-            var cs = FileStore.Load(acSpec);
-            Log.Info($"Opened {cs.Name} (current branch is {cs.Current.Info.BranchName})");
+            FileStore fs = FileStore.Load(acSpec);
+            Log.Info($"Opened {fs.Name} (current branch is {fs.Current.Name})");
 
             // Remember the store we opened as the last one
-            cs.SaveCurrent();
+            fs.SaveCurrent();
 
             // Load up the command stream as well
-            cs.Stream = cs.Current.CreateStream();
+            fs.Stream = fs.Current.CreateStream();
 
-            return new ExecutionContext(cs);
+            return new ExecutionContext(fs);
         }
 
         /// <summary>

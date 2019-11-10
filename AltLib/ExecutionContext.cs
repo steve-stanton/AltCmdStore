@@ -203,7 +203,7 @@ namespace AltLib
         /// </remarks>
         public IRemoteStore GetRemoteStore(string storeUrl)
         {
-            string acPath = BranchInfo.GetAcPath(storeUrl);
+            string acPath = FileStore.GetAcFilePath(storeUrl);
 
             if (acPath == null)
                 throw new ApplicationException("Cannot locate " + storeUrl);
