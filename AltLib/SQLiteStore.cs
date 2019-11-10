@@ -76,19 +76,18 @@ namespace AltLib
                     branchName: name,
                     createdAt: args.CreatedAt);
 
-                // Create a new root
-                var root = new RootInfo(storeId, name, Guid.Empty);
+                // Create the store metadata
+                var storeInfo = new StoreInfo(storeId, name, Guid.Empty);
 
                 // Create the store and save it
-                result = new SQLiteStore(
-                    root,
-                    new BranchInfo[] {ac},
-                    ac.BranchId,
-                    db);
+                result = new SQLiteStore(storeInfo,
+                                         new BranchInfo[] {ac},
+                                         ac.BranchId,
+                                         db);
 
-                // Save the info for the master branch plus the root metadata
+                // Save the info for the master branch plus the store metadata
                 result.SaveBranchInfo(ac);
-                result.SaveRoot();
+                result.SaveStoreInfo();
 
                 // The last branch is the root of the new database
                 result.SaveProperty(PropertyNaming.LastBranch, storeId.ToString());
@@ -104,15 +103,15 @@ namespace AltLib
         /// <summary>
         /// Initializes a new instance of the <see cref="SQLiteStore"/> class.
         /// </summary>
-        /// <param name="rootInfo">Root metadata for this store.</param>
+        /// <param name="storeInfo">Store metadata.</param>
         /// <param name="branches">The branches in the store (not null or empty)</param>
         /// <param name="currentId">The ID of the currently checked out branch</param>
         /// <param name="db">The database that holds the store content</param>
-        internal SQLiteStore(RootInfo rootInfo,
-            BranchInfo[] branches,
-            Guid currentId,
-            SQLiteDatabase db)
-            : base(db.FileName, rootInfo, branches, currentId)
+        internal SQLiteStore(StoreInfo storeInfo,
+                             BranchInfo[] branches,
+                             Guid currentId,
+                             SQLiteDatabase db)
+            : base(db.FileName, storeInfo, branches, currentId)
         {
             Database = db;
         }
@@ -207,25 +206,25 @@ namespace AltLib
         }
 
         /// <summary>
-        /// Saves root metadata as part of this store.
+        /// Saves store metadata.
         /// </summary>
-        public override void SaveRoot()
+        public override void SaveStoreInfo()
         {
             Database.ExecuteTransaction(() =>
             {
-                SaveProperty(PropertyNaming.StoreId, Root.StoreId.ToString());
+                SaveProperty(PropertyNaming.StoreId, Store.StoreId.ToString());
 
-                if (Root.UpstreamId.Equals(Guid.Empty))
+                if (Store.UpstreamId.Equals(Guid.Empty))
                 {
-                    Debug.Assert(String.IsNullOrEmpty(Root.UpstreamLocation));
+                    Debug.Assert(String.IsNullOrEmpty(Store.UpstreamLocation));
                 }
                 else
                 {
-                    SaveProperty(PropertyNaming.UpstreamId, Root.UpstreamId.ToString());
-                    SaveProperty(PropertyNaming.UpstreamLocation, Root.UpstreamLocation);
+                    SaveProperty(PropertyNaming.UpstreamId, Store.UpstreamId.ToString());
+                    SaveProperty(PropertyNaming.UpstreamLocation, Store.UpstreamLocation);
                 }
 
-                if (Root.PushTimes != null)
+                if (Store.PushTimes != null)
                 {
                     // To store as json 
                     throw new NotImplementedException();
@@ -332,7 +331,7 @@ namespace AltLib
                 props[PropertyNaming.StoreId.ToString()] = cs.StoreId;
             }
 
-            var root = new RootInfo(
+            var root = new StoreInfo(
                 storeId: props.GetGuid(PropertyNaming.StoreId.ToString()),
                 name: Path.GetFileNameWithoutExtension(sqliteFilename),
                 upstreamId: props.GetGuid(PropertyNaming.UpstreamId.ToString()),
@@ -362,7 +361,7 @@ namespace AltLib
             // If we amended the store properties for a new clone, save
             // them back to the database
             if (cs != null)
-                result.SaveRoot();
+                result.SaveStoreInfo();
 
             return result;
         }

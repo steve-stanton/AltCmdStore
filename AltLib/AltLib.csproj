@@ -126,7 +126,7 @@
     <Compile Include="ProcessorException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CmdData.cs" />
-    <Compile Include="RootInfo.cs" />
+    <Compile Include="StoreInfo.cs" />
     <Compile Include="SimpleCmdFilter.cs" />
     <Compile Include="Database\SQLiteDatabase.cs" />
     <Compile Include="SQLiteStore.cs" />

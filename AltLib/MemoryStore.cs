@@ -54,9 +54,9 @@ namespace AltLib
         /// <param name="rootAc">Metadata for the root branch</param>
         MemoryStore(BranchInfo rootAc)
             : base(String.Empty,
-                new RootInfo(rootAc),
-                new BranchInfo[] {rootAc},
-                rootAc.BranchId)
+                   new StoreInfo(rootAc),
+                   new BranchInfo[] {rootAc},
+                   rootAc.BranchId)
         {
             AcFiles = new Dictionary<Guid, string>();
             Data = new Dictionary<string, string>();
@@ -132,15 +132,15 @@ namespace AltLib
         }
 
         /// <summary>
-        /// Saves the supplied root metadata as part of this store.
+        /// Saves the supplied store metadata.
         /// </summary>
-        public override void SaveRoot()
+        public override void SaveStoreInfo()
         {
-            // Root metadata for a memory store doesn't need to be saved
+            // Store metadata for a memory store doesn't need to be saved
             // (for now, I don't see any need to read back the serialized
             // form while an application is running)
 
-            //string data = JsonConvert.SerializeObject(Root, Formatting.Indented);
+            //string data = JsonConvert.SerializeObject(Store, Formatting.Indented);
         }
 
         /// <summary>

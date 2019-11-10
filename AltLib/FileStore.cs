@@ -12,9 +12,9 @@ namespace AltLib
     public class FileStore : CmdStore
     {
         /// <summary>
-        /// The name of the file that holds root metadata for the command store.
+        /// The name of the file that holds store metadata for the command store.
         /// </summary>
-        const string RootName = ".root";
+        const string StoreInfoName = ".storeInfo";
 
         static Logger Log = LogManager.GetCurrentClassLogger();
 
@@ -135,9 +135,9 @@ namespace AltLib
                 if (Directory.Exists(origin))
                     origin = Path.GetFullPath(origin);
 
-                // Save the root metadata
-                var root = new RootInfo(storeId, name, rs.Id, origin);
-                SaveRoot(folderName, root);
+                // Save the store metadata
+                var root = new StoreInfo(storeId, name, rs.Id, origin);
+                SaveStoreInfo(folderName, root);
 
                 // And suck it back up again
                 string acSpec = Path.Combine(folderName, acs[0].BranchId + ".ac");
@@ -152,18 +152,18 @@ namespace AltLib
                                         branchName: name,
                                         createdAt: args.CreatedAt);
 
-                // Create a new root
-                var root = new RootInfo(storeId, name, Guid.Empty);
+                // Create the store metadata
+                var storeInfo = new StoreInfo(storeId, name, Guid.Empty);
 
                 // Create the store and save it
                 result = new FileStore(folderName,
-                                       root,
+                                       storeInfo,
                                        new BranchInfo[] { ac },
                                        ac.BranchId);
 
-                // Save the AC file plus the root metadata
+                // Save the AC file plus the store metadata
                 FileStore.SaveBranchInfo(folderName, ac);
-                result.SaveRoot();
+                result.SaveStoreInfo();
             }
 
             return result;
@@ -278,32 +278,33 @@ namespace AltLib
             // Confirm that the supplied file really is an AC file.
             var ac = ReadAc(acSpec);
 
-            // Locate root metadata
-            string dirPath = Path.GetDirectoryName(acSpec);
-            var dirInfo = new DirectoryInfo(dirPath);
+            // Locate store metadata
+            var dirInfo = new DirectoryInfo(Path.GetDirectoryName(acSpec));
+            dirInfo = FindRootDirectory(dirInfo);
             if (dirInfo == null)
                 throw new ApplicationException("Cannot locate root folder");
 
-            var root = ReadRoot(dirInfo.FullName);
+            var storeInfo = ReadStoreInfo(dirInfo.FullName);
 
             // Load all AC files in the tree
             BranchInfo[] acs = Load(dirInfo).OrderBy(x => x.CreatedAt).ToArray();
             //Log.Info($"Loaded {acs.Length} AC files");
 
-            return new FileStore(dirInfo.FullName, root, acs, ac.BranchId);
+            return new FileStore(dirInfo.FullName, storeInfo, acs, ac.BranchId);
         }
 
         /// <summary>
-        /// Attempts to locate root metadata (by walking up the directory tree).
+        /// Attempts to locate the root folder of this store (by walking up the
+        /// directory tree to find the store metadata file).
         /// </summary>
         /// <param name="dirInfo">Information for the directory to check first</param>
-        /// <returns>Information for the directory that contains root metadata (null
+        /// <returns>Information for the directory that contains store metadata (null
         /// if it could not be found).</returns>
         static DirectoryInfo FindRootDirectory(DirectoryInfo dirInfo)
         {
             for (var d = dirInfo; d != null; d = d.Parent)
             {
-                string fileName = Path.Combine(d.FullName, RootName);
+                string fileName = Path.Combine(d.FullName, StoreInfoName);
                 if (File.Exists(fileName))
                     return d;
             }
@@ -312,15 +313,15 @@ namespace AltLib
         }
 
         /// <summary>
-        /// Loads root metadata from the specified folder.
+        /// Loads store metadata from the specified folder.
         /// </summary>
         /// <param name="folderName">The path for the root folder of a command store.</param>
-        /// <returns>The root metadata in the specified folder.</returns>
-        static RootInfo ReadRoot(string folderName)
+        /// <returns>The store metadata.</returns>
+        static StoreInfo ReadStoreInfo(string folderName)
         {
-            string fileName = Path.Combine(folderName, RootName);
+            string fileName = Path.Combine(folderName, StoreInfoName);
             string data = File.ReadAllText(fileName);
-            return JsonConvert.DeserializeObject<RootInfo>(data);
+            return JsonConvert.DeserializeObject<StoreInfo>(data);
         }
 
         /// <summary>
@@ -355,14 +356,14 @@ namespace AltLib
         /// Initializes a new instance of the <see cref="FileStore"/> class.
         /// </summary>
         /// <param name="rootFolder">The folder containing the master branch of this store.</param>
-        /// <param name="rootInfo">Root metadata for this store.</param>
+        /// <param name="storeInfo">Store metadata.</param>
         /// <param name="branches">The branches in the store (not null or empty)</param>
         /// <param name="currentId">The ID of the currently checked out branch</param>
         internal FileStore(string rootFolder,
-                           RootInfo rootInfo,
+                           StoreInfo storeInfo,
                            BranchInfo[] branches,
                            Guid currentId)
-            : base(rootFolder, rootInfo, branches, currentId)
+            : base(rootFolder, storeInfo, branches, currentId)
         {
         }
 
@@ -435,22 +436,22 @@ namespace AltLib
             File.WriteAllText(fileName, data);
         }
 
-        /// <summary>
-        /// Saves the supplied root metadata as part of this store.
-        /// </summary>
-        public override void SaveRoot()
+        public override void SaveStoreInfo()
         {
-            SaveRoot(RootDirectoryName, Root);
+            SaveStoreInfo(RootDirectoryName, Store);
         }
 
-        static void SaveRoot(string rootDirectoryName, RootInfo root)
+        /// <summary>
+        /// Saves the supplied store metadata.
+        /// </summary>
+        static void SaveStoreInfo(string rootDirectoryName, StoreInfo storeInfo)
         {
             if (rootDirectoryName == null)
-                throw new ArgumentNullException("Cannot save root because location is undefined");
+                throw new ArgumentNullException("Cannot save store info because location is undefined");
 
             Directory.CreateDirectory(rootDirectoryName);
-            string data = JsonConvert.SerializeObject(root, Formatting.Indented);
-            string fileName = Path.Combine(rootDirectoryName, RootName);
+            string data = JsonConvert.SerializeObject(storeInfo, Formatting.Indented);
+            string fileName = Path.Combine(rootDirectoryName, StoreInfoName);
             File.WriteAllText(fileName, data);
         }
 

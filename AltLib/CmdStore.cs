@@ -18,19 +18,19 @@ namespace AltLib
         protected string Home { get; }
 
         /// <summary>
-        /// Root metadata for the store.
+        /// Store metadata
         /// </summary>
-        public RootInfo Root { get; }
+        public StoreInfo Store { get; }
 
         /// <summary>
         /// The unique ID for this store.
         /// </summary>
-        public Guid Id => Root.StoreId;
+        public Guid Id => Store.StoreId;
 
         /// <summary>
         /// A user-perceived name for this store.
         /// </summary>
-        public string Name => Root.Name;
+        public string Name => Store.Name;
 
         /// <summary>
         /// The local branches known to this store (keyed by the branch ID).
@@ -119,11 +119,11 @@ namespace AltLib
         /// </summary>
         /// <param name="home">Some sort of identifier relating to the place where
         /// the store resides</param>
-        /// <param name="rootInfo">Root metadata for this store.</param>
+        /// <param name="storeInfo">Store metadata.</param>
         /// <param name="acInfo">Metadata for the branches in the store</param>
         /// <param name="currentId">The ID of the currently checked out branch</param>
         protected CmdStore(string home,
-                           RootInfo rootInfo,
+                           StoreInfo storeInfo,
                            BranchInfo[] acInfo,
                            Guid currentId)
         {
@@ -133,7 +133,7 @@ namespace AltLib
             Home = home;
 
             // Obtain the store name from the root folder
-            Root = rootInfo;
+            Store = storeInfo;
             Log.Trace($"Initializing store {Id}, Name={Name}");
 
             Branches = acInfo.ToDictionary(x => x.BranchId,
@@ -223,9 +223,9 @@ namespace AltLib
         public abstract void SaveBranchInfo(Branch branch);
 
         /// <summary>
-        /// Saves the root metadata as part of this store.
+        /// Saves the store metadata.
         /// </summary>
-        abstract public void SaveRoot();
+        abstract public void SaveStoreInfo();
 
         /// <summary>
         /// Attempts to locate a branch given it's internal branch ID.

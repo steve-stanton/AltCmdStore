@@ -7,7 +7,7 @@ namespace AltLib
     /// <summary>
     /// Metadata relating to a command store.
     /// </summary>
-    public class RootInfo
+    public class StoreInfo
     {
         /// <summary>
         /// The ID of the command store.
@@ -50,7 +50,7 @@ namespace AltLib
         public Dictionary<string, DateTime> PushTimes { get; }
 
         /// <summary>
-        /// Creates a new instance of <see cref="RootInfo"/>
+        /// Creates a new instance of <see cref="StoreInfo"/>
         /// </summary>
         /// <param name="storeId">The ID of a command store.</param>
         /// <param name="name">The user-perceived name of the store.</param>
@@ -61,7 +61,7 @@ namespace AltLib
         /// <param name="pushTimes">The locations of all versions of the upstream that
         /// the clone has pushed to (along with the time of the last push).</param>
         [JsonConstructor]
-        internal RootInfo(Guid storeId,
+        internal StoreInfo(Guid storeId,
                           string name,
                           Guid upstreamId,
                           string upstreamLocation = null,
@@ -75,11 +75,11 @@ namespace AltLib
         }
 
         /// <summary>
-        /// Creates a new instance of <see cref="RootInfo"/> for
+        /// Creates a new instance of <see cref="StoreInfo"/> for
         /// a brand new command store.
         /// </summary>
         /// <param name="ac">The branch metadata for the root branch</param>
-        internal RootInfo(BranchInfo ac)
+        internal StoreInfo(BranchInfo ac)
             : this(ac.StoreId, ac.BranchName, Guid.Empty)
         {
         }
