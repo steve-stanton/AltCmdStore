@@ -30,7 +30,7 @@ namespace AltCmdTests
                 Assert.IsNotNull(fs);
                 Assert.IsTrue(Directory.Exists(folder));
                 Assert.IsTrue(File.Exists(Path.Combine(folder, "0.json")));
-                Assert.IsTrue(File.Exists(Path.Combine(folder, ".root")));
+                Assert.IsTrue(File.Exists(Path.Combine(folder, ".storeInfo")));
                 Assert.AreEqual<int>(Directory.GetFiles(folder).Length, 3);
                 Assert.AreEqual<string>(storeName, cs.Name);
                 Assert.AreEqual<string>(folder, fs.RootDirectoryName);
